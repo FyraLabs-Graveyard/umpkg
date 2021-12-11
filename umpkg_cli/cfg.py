@@ -9,6 +9,7 @@ defaults = {
     "build_script": '', # specify a command to run to generate source
     "build_mode": 'local', # Builds the SRPM locally, then uploads it to Koji
     "tag": '', # Default to no tag
+    "spec": '', # Default to no spec
 }
 
 config = configparser.ConfigParser()
