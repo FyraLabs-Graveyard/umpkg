@@ -6,7 +6,7 @@ import os
 import sys
 import umpkg_cli.cfg as config
 import umpkg_cli.util as util
-from umpkg_cli.util import session
+#from umpkg_cli.util import session
 
 cfg = config.read_config()
 

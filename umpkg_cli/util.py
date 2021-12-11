@@ -4,7 +4,7 @@ import re
 import sys
 import umpkg_cli.cfg as config
 import glob
-profile = koji.get_profile_module('ultramarine')
+#profile = koji.get_profile_module('ultramarine')
 
 #session = koji.ClientSession(profile.config.server) # TODO: use this instead of wrapping the CLI
 
