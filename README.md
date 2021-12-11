@@ -55,16 +55,16 @@ package/
 ├── pkg1.spec
 ├── pkg2.spec
 ├── pkg3.spec
-sources/
-└── pkg1/
-    ├── pkg1-src.tar.gz
-    ├── pkg1-patch.patch
-└── pkg2/
-    ├── pkg2-src.tar.gz
-    ├── pkg2-patch.patch
-└── pkg3/
-    ├── pkg3-src.tar.gz
-    ├── pkg3-patch.patch
+├── sources/
+    └── pkg1/
+        ├── pkg1-src.tar.gz
+        ├── pkg1-patch.patch
+    └── pkg2/
+        ├── pkg2-src.tar.gz
+        ├── pkg2-patch.patch
+    └── pkg3/
+        ├── pkg3-src.tar.gz
+        ├── pkg3-patch.patch
 ```
 
 And with that, everything's ready to go! Happy packaging!
