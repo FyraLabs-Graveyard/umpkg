@@ -115,6 +115,6 @@ def build_src(tag, path):
         # except the command exiting with an error code
         srpm_list = glob.glob('build/srpm/*')
         srpm = max(srpm_list, key=os.path.getctime)
-        print('Pushing {srpm} to Koji...')
+        print(f'Pushing {srpm} to Koji...')
         os.system(f'koji build {tag} {srpm}')
 

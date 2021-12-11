@@ -3,10 +3,18 @@ import setuptools
 import os
 setuptools.setup(
     name="umpkg",
-    version="1.0",
+    fullname="Ultramarine Packaging Tool",
+    version="0.1",
     author="Cappy Ishihara",
     install_requires=[
         'typer',
         'koji',
-    ]
+    ],
+    include_dirs=['umpkg_cli'],
+    include_package_data=True,
+    scripts=['./umpkg'],
+    packages=['umpkg_cli'],
+    package_dir={'umpkg_cli': 'umpkg_cli'},
+    python_requires='>=3.10',
+
 )
