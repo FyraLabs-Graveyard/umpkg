@@ -28,7 +28,7 @@ def build_srpm(tag, path):
     """
     return os.system(f'koji build {tag} {path}')
 
-def build_src(tag, path):
+def build_src(tag, path,local:bool=False):
     """
     Builds the source RPM from the config file
     """
@@ -63,9 +63,7 @@ def build_src(tag, path):
             print(f'Spec file {s} not found')
             sys.exit(1)
 
-    print(spec)
     # check if the spec option has multiple values split by a space
-    print(f'Building {spec}')
     if len (spec) > 1:
         for s in spec:
             # get the file name and remove .spec from the end
@@ -90,7 +88,11 @@ def build_src(tag, path):
             if not srpm: # additional check for empty list
                 return 255
             print('Pushing {srpm} to Koji...')
-            os.system(f'koji build --nowait {tag} {srpm}')
+            if local == True:
+                print('Local build, building locally...')
+                os.system(f'rpmbuild -bb --rebuild {srpm}')
+            else:
+                os.system(f'koji build --nowait {tag} {srpm}')
             return
 
 

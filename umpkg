@@ -15,9 +15,10 @@ app = typer.Typer()
 def build(
     tag: str = typer.Argument(None, help="The Koji tag to build"),
     path: str = typer.Argument(None, help="The path to the package"),
+    local: bool = typer.Option(False, "--local", help="Do not wait for build to complete"),
 ):
-    """[summary]
-    Builds a package in the current git repository
+    """
+    Builds a package in the current directory or from a git repository.
     """
     if not tag:
         # then check if the tag is set in the config
@@ -43,7 +44,7 @@ def build(
     # elif path is already an srpm
     elif path.endswith(".src.rpm"):
         pkgpath = path
-        util.build_srpm(tag,pkgpath)
+        util.build_srpm(tag,pkgpath,local=True)
     else:
         util.build_src(tag, path)
 
