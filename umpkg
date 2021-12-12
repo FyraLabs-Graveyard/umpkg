@@ -44,9 +44,9 @@ def build(
     # elif path is already an srpm
     elif path.endswith(".src.rpm"):
         pkgpath = path
-        util.build_srpm(tag,pkgpath,local=True)
+        util.build_srpm(tag,pkgpath,local)
     else:
-        util.build_src(tag, path)
+        util.build_src(tag, path,local)
 
 @app.command()
 def help():
