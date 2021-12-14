@@ -13,47 +13,45 @@ cfg = config.read_config()
 app = typer.Typer()
 @app.command()
 def build(
-    tag: str = typer.Argument(None, help="The Koji tag to build"),
     path: str = typer.Argument(None, help="The path to the package"),
-    local: bool = typer.Option(False, "--local", help="Do not wait for build to complete"),
 ):
     """
-    Builds a package in the current directory or from a git repository.
+    Builds a package from source
     """
-    if not tag:
-        # then check if the tag is set in the config
-        if not cfg['tag']:
-            print("No tag specified and no default tag set in config! Exiting...")
-            sys.exit(1)
-        else:
-            tag = cfg['tag']
-    
     if not path:
-        path = os.getcwd()
-    if not os.path.exists(path):
-        typer.echo("Path does not exist! Exiting...")
-        sys.exit(1)
-    if not os.path.isdir(path):
-        typer.echo("Path is not a directory! Exiting...")
-        sys.exit(1)
-    # check if path is a git link
-    if path.endswith(".git"):
-        # clone the repo to a temporary directory
-        pkgpath = util.clone_repo(path)
-        util.build_src(tag, pkgpath)
-    # elif path is already an srpm
-    elif path.endswith(".src.rpm"):
-        pkgpath = path
-        util.build_srpm(tag,pkgpath,local)
+        # split the spec names by space
+        specs = cfg['spec'].split(' ')
+        for spec in specs:
+            # add .spec to the spec name if it's not already there
+            if not spec.endswith('.spec'):
+                spec += '.spec'
+            if os.path.exists(spec):
+                srpm = util.build_src(spec)
+                util.build_src(srpm)
+            else:
+                print(f'Spec {spec} not found')
+                sys.exit(1)
     else:
-        util.build_src(tag, path,local)
+        if not path.endswith('.spec'):
+            path += '.spec'
+        if os.path.exists(path):
+            srpm = util.build_src(path)
+            util.build_src(srpm)
+        else:
+            print(f'Spec {path} not found')
+            sys.exit(1)
+    os.system(f'rpmbuild --rebuild -bb {srpm} --define "_rpmdir build/rpm"')
+
 
 @app.command()
-def help():
+def push(
+    tag: str = typer.Argument(..., help="The Koji tag to push"),
+    pkg: str = typer.Argument(None, help="The package name"),
+):
     """
-    Displays help information
+    Builds and pushes a package to Koji
     """
-    typer.echo("You called for help, but no one came...")
+    return util.push(tag,pkg)
 
 if __name__ == "__main__":
     app()
