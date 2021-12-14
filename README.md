@@ -50,7 +50,7 @@ package/
 ├── umpkg.cfg
 ├── package.spec
 ├── package-src.tar.gz (optional as umpkg can download it from the internet)
-├── package-patch.patch
+└── package-patch.patch
 ```
 
 For multiple packages, your config file should look like this:
@@ -68,16 +68,16 @@ package/
 ├── pkg1.spec
 ├── pkg2.spec
 ├── pkg3.spec
-├── sources/
+└── sources/
     └── pkg1/
         ├── pkg1-src.tar.gz
-        ├── pkg1-patch.patch
+        └── pkg1-patch.patch
     └── pkg2/
         ├── pkg2-src.tar.gz
-        ├── pkg2-patch.patch
+        └── pkg2-patch.patch
     └── pkg3/
         ├── pkg3-src.tar.gz
-        ├── pkg3-patch.patch
+        └── pkg3-patch.patch
 ```
 
 And with that, everything's ready to go! Happy packaging!
