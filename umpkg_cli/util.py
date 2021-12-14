@@ -36,20 +36,24 @@ def build_src(path):
     if src == '' or src == None or src == '$PWD' or src == '.':
         src = os.getcwd()
     # else if source is defined
-    elif os.path.exists(src):
-        # get the spec file name without the .spec
-        specfile = os.path.basename(src).split('.')[0]
-        print (f'Building {specfile}')
+    
+    else:
+        specfile = os.path.splitext(os.path.basename(path))[0]
+        print(specfile)
+        src = os.path.join(os.getcwd(), src)
+    # get file name without extension
+
 
     args = [
-        '--define', f'\"_sourcedir {src}/{path}\"',
-        '--define', f'\"_specdir $PWD\"',
+        '--define', f'\"_sourcedir {src}\"',
         '--define', f'\"_srcrpmdir build/srpm\"',
         '--define', f'\"_rpmdir build/rpm\"',
         '--undefine _disable_source_fetch',
     ]
     args = ' '.join(args)
+    print(args)
     os.system(f'rpmbuild -bs {path} {args}')
+    #print(src)
     # get the newest file in build/srpm
     filelist = glob.glob('build/srpm/*.src.rpm')
     try:
@@ -69,6 +73,10 @@ def push(tag, pkg):
     if not pkg:
         # split the spec names by space
         specs = cfg['spec'].split(' ')
+        if specs == ['']:
+            # find the first spec file in the current directory
+            specs = glob.glob('*.spec')
+            print(specs)
         for spec in specs:
             # add .spec to the spec name if it's not already there
             if not spec.endswith('.spec'):
@@ -78,5 +86,10 @@ def push(tag, pkg):
     else:
         if not pkg.endswith('.spec'):
             pkg += '.spec'
-        srpm = build_src(pkg)
-        os.system(f'koji build {tag} {srpm}')
+        # check if the spec file exists
+        if os.path.exists(pkg):
+            srpm = build_src(pkg)
+            os.system(f'koji build {tag} {srpm}')
+        else:
+            print(f'Spec {pkg} not found')
+            sys.exit(1)

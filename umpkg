@@ -27,7 +27,6 @@ def build(
                 spec += '.spec'
             if os.path.exists(spec):
                 srpm = util.build_src(spec)
-                util.build_src(srpm)
             else:
                 print(f'Spec {spec} not found')
                 sys.exit(1)
@@ -36,7 +35,6 @@ def build(
             path += '.spec'
         if os.path.exists(path):
             srpm = util.build_src(path)
-            util.build_src(srpm)
         else:
             print(f'Spec {path} not found')
             sys.exit(1)
