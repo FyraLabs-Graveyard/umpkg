@@ -13,6 +13,19 @@ umpkg uses a configuration file called `umpkg.cfg` to define the build environme
 
 umpkg can be used to check out the spec sources from another Git repository, build the package, then upload the package to Koji, similar to the way that fedpkg works.
 
+
+## Usage
+To push a package to Koji, run:
+```
+umpkg push <package>
+```
+If the package is not defined, then it will build every single package defined in the configuration file.
+
+You can also build locally by running:
+```
+umpkg build <package>
+```
+
 ## Configuration
 In order to use umpkg, you need to create a configuration file called `umpkg.cfg` in the same directory as the spec file, or set the path manually in your configuration file, which can be a list.
 
