@@ -12,8 +12,9 @@ defaults = {
     "spec": '', # Default to no spec
 }
 
-config = configparser.ConfigParser()
 
+config = configparser.ConfigParser()
+globalConfig = configparser.ConfigParser()
 # make the default section
 config.add_section('umpkg')
 for key, value in defaults.items():
@@ -32,3 +33,38 @@ def read_config():
             defaults[key] = config.get('umpkg', key)
     # convert the values into a dict becuase it's a list of tuples
     return dict(config.items('umpkg'))
+
+
+#### Global Configurations ####
+globalDefaults = {
+    "koji_profile": 'ultramarine',
+    "username": '',
+    "build_method": 'rpmbuild',
+    "mock_chroot": '',
+
+}
+
+def readGlobalConfig():
+
+    homedir = os.path.expanduser('~')
+    # read the config file then override the defaults
+    if os.path.exists(f'{homedir}/.config/umpkg.cfg'):
+        globalConfig.read(f'{homedir}/.config/umpkg.cfg')
+    else:
+        os.makedirs(f'{homedir}/.config', exist_ok=True)
+        globalConfig.add_section('umpkg_global')
+        for key, value in globalDefaults.items():
+            globalConfig.set('umpkg_global', key, value)
+        with open(f'{homedir}/.config/umpkg.cfg', 'w') as configfile:
+            globalConfig.write(configfile)
+    for key, value in defaults.items():
+        if globalConfig.has_option('umpkg_global', key):
+            defaults[key] = globalConfig.get('umpkg_global', key)
+    # convert the values into a dict becuase it's a list of tuples
+    return dict(globalConfig.items('umpkg_global'))
+
+def setGlobalConfig(key, value):
+    homedir = os.path.expanduser('~')
+    globalConfig.set('umpkg_global', key, value)
+    with open(f'{homedir}/.config/umpkg.cfg', 'w') as configfile:
+        globalConfig.write(configfile)
