@@ -6,6 +6,7 @@ import umpkg_cli.cfg as config
 import glob
 import gitlab
 import umpkg_cli.rpm_util as rpm_util
+import umpkg_cli.koji_util as koji_util
 
 class Command:
     def pushSRPM(tag, path):
@@ -35,15 +36,20 @@ class Command:
                     srpm = self.buildSrc(spec)
                     rpm = rpm_util.RPM.analyzeRPM(srpm)
                     print(f"Adding {rpm['name']} to Koji in case it's not already there")
-                    os.system(f"koji add-pkg {tag} {rpm['name']} --owner $USER")
-                    os.system(f'koji build {tag} {srpm}')
+                    koji_util.add(tag,rpm['name'])
+                    print(f"Pushing {rpm['name']} to Koji")
+                    koji_util.build(tag,srpm)
         else:
             if not pkg.endswith('.spec'):
                 pkg += '.spec'
             # check if the spec file exists
             if os.path.exists(pkg):
                 srpm = self.buildSrc(pkg)
-                os.system(f'koji build {tag} {srpm}')
+                rpm = rpm_util.RPM.analyzeRPM(srpm)
+                print(f"Adding {rpm['name']} to Koji in case it's not already there")
+                koji_util.add(tag,rpm['name'])
+                print(f"Pushing {rpm['name']} to Koji")
+                koji_util.build(tag,srpm)
             else:
                 print(f'Spec {pkg} not found')
                 sys.exit(1)
@@ -68,7 +74,7 @@ class Command:
                 continue
         print(f'{project} not found')
         return False
-    
+
     def buildSrc(self, spec: str):
         """
         Builds the source RPM from the spec file
