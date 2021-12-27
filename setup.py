@@ -4,11 +4,13 @@ import os
 setuptools.setup(
     name="umpkg",
     fullname="Ultramarine Packaging Tool",
-    version="0.1",
+    version="0.1.2",
     author="Cappy Ishihara",
     install_requires=[
         'typer',
         'koji',
+        'python-gitlab',
+        'configparser',
     ],
     include_dirs=['umpkg_cli'],
     include_package_data=True,

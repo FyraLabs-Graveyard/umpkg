@@ -51,5 +51,15 @@ def push(
     """
     return util.push(tag,pkg)
 
+
+@app.command()
+def get(
+    name: str = typer.Argument(..., help="The package name"),
+):
+    """
+    Gets the package source from Ultramarine GitLab
+    """
+    return util.pullGitlab(name)
+
 if __name__ == "__main__":
     app()
