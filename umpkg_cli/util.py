@@ -5,6 +5,8 @@ import sys
 import umpkg_cli.cfg as config
 import glob
 
+import gitlab
+
 def clone_repo(repo):
     """
     Clones a git repository into a temporary directory
@@ -96,3 +98,24 @@ def push(tag, pkg):
         else:
             print(f'Spec {pkg} not found')
             sys.exit(1)
+
+def pullGitlab(project: str):
+    """
+    Fetches a package from Ultramarine GitLab, then clone it
+    """
+    # list all projects in the dist-pkgs group using public API
+    gl = gitlab.Gitlab('https://gitlab.ultramarine-linux.org/')
+    print(f"Finding {project} in GitLab")
+    group = gl.groups.get('dist-pkgs')
+    projects = group.projects.list(all=True)
+    for p in projects:
+        path = p.path_with_namespace
+        if path == f"dist-pkgs/{project}":
+            print(f'Found {project}')
+            # clone the project
+            os.system(f'git clone {p.ssh_url_to_repo}')
+            return os.getcwd() + '/' + project
+        else:
+            continue
+
+    print(f'{project} not found')
