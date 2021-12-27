@@ -36,13 +36,16 @@ def build_src(path):
     if src == '' or src == None or src == '$PWD' or src == '.':
         src = os.getcwd()
     # else if source is defined
-    
     else:
         specfile = os.path.splitext(os.path.basename(path))[0]
         print(specfile)
         src = os.path.join(os.getcwd(), src)
     # get file name without extension
 
+    # if there's a build script defined
+    if cfg['build_script'] != '':
+        # build the source
+        os.system(cfg['build_script'])
 
     args = [
         '--define', f'\"_sourcedir {src}\"',
