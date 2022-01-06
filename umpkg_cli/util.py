@@ -28,6 +28,9 @@ class Command:
                 # find the first spec file in the current directory
                 specs = glob.glob('*.spec')
                 print(specs)
+                # specs is now a list of spec files, so get the first one
+                specs = [specs[0]]
+                print(specs)
             else:
                 for spec in specs:
                     # add .spec to the spec name if it's not already there
@@ -75,7 +78,7 @@ class Command:
         print(f'{project} not found')
         return False
 
-    def buildSrc(self, spec: str):
+    def buildSrc(self,spec: str):
         """
         Builds the source RPM from the spec file
         """

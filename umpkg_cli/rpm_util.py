@@ -6,6 +6,7 @@ import rpm
 import umpkg_cli.cfg as config
 
 cfg = config.readGlobalConfig()
+pkgconfig = config.read_config()
 
 # Ported over from Lapis Utils
 class RPM:
@@ -28,9 +29,20 @@ class RPMBuild:
         """
 
         if source_dir is None:
-            # sourcedir is the path to the directory containing the spec file
-            source_dir = os.path.dirname(spec)
+            # check if srcdir is set
+            if pkgconfig['srcdir'] == '':
+                # if not set, use pwd
+                source_dir = os.getcwd()
+            else:
+                # if set use that + the spec name without .spec
+                source_dir = pkgconfig['srcdir'] + '/' + spec.split('/')[-1].split('.')[0]
+                # check if the directory exists
+                if not os.path.exists(source_dir):
+                    # if not, use ~/rpmbuild/SOURCES
+                    print(f'{source_dir} not found, using ~/rpmbuild/SOURCES')
+                    source_dir = os.path.expanduser('~/rpmbuild/SOURCES/')
         # build the source
+        print(f'Building source RPM from {source_dir}')
         command = [
             'rpmbuild',
             '-bs',

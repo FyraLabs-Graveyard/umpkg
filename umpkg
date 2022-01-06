@@ -19,6 +19,7 @@ def build(
     """
     Builds a package from source
     """
+    command = util.Command()
     if not path:
         # split the spec names by space
         specs = cfg['spec'].split(' ')
@@ -27,7 +28,7 @@ def build(
             if not spec.endswith('.spec'):
                 spec += '.spec'
             if os.path.exists(spec):
-                srpm = util.Command.buildSrc(spec)
+                srpm = command.buildSrc(spec)
             else:
                 print(f'Spec {spec} not found')
                 sys.exit(1)
@@ -35,7 +36,7 @@ def build(
         if not path.endswith('.spec'):
             path += '.spec'
         if os.path.exists(path):
-            srpm = util.Command.buildSrc(path)
+            srpm = command.buildSrc(path)
         else:
             print(f'Spec {path} not found')
             sys.exit(1)
@@ -49,7 +50,8 @@ def push(
     """
     Builds and pushes a package to Koji
     """
-    return util.Command.push(tag, pkg)
+    command = util.Command()
+    return command.push(tag, pkg)
 
 
 @app.command()
