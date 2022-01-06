@@ -1,6 +1,6 @@
 # umpkg
 
-Packaging scripts for Ultramarine
+Packaging scripts for Ultramarine, based on the old makefiles for the Ultramarine release packages.
 
 `umpkg` is a set of Python scripts that is used for building packages for Ultramarine Linux.
 It is a wrapper around Koji, RPMBuild, and the GitLab API.

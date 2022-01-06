@@ -13,6 +13,35 @@ globalCfg = config.readGlobalConfig()
 
 app = typer.Typer()
 @app.command()
+def buildsrc(
+    path: str = typer.Argument(None, help="The path to the package"),
+):
+    """
+    Builds a source RPM from a spec file
+    """
+    command = util.Command()
+    if not path:
+        # split the spec names by space
+        specs = cfg['spec'].split(' ')
+        for spec in specs:
+            # add .spec to the spec name if it's not already there
+            if not spec.endswith('.spec'):
+                spec += '.spec'
+            if os.path.exists(spec):
+                srpm = command.buildSrc(spec)
+            else:
+                print(f'Spec {spec} not found')
+                sys.exit(1)
+    else:
+        if not path.endswith('.spec'):
+            path += '.spec'
+        if os.path.exists(path):
+            srpm = command.buildSrc(path)
+        else:
+            print(f'Spec {path} not found')
+            sys.exit(1)
+
+@app.command()
 def build(
     path: str = typer.Argument(None, help="The path to the package"),
 ):
@@ -41,7 +70,9 @@ def build(
             print(f'Spec {path} not found')
             sys.exit(1)
 
-
+    # now build it using mock. sorry folks too lazy to do it properly
+    builder = rpm_util.Mock()
+    builder.buildRPM(srpm)
 @app.command()
 def push(
     tag: str = typer.Argument(..., help="The Koji tag to push"),

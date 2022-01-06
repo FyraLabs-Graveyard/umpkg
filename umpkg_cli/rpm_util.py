@@ -110,7 +110,7 @@ class RPMBuild:
             sys.exit(1)
 
 class Mock:
-    def buildSrc(spec:str, source_dir:str=None):
+    def buildSrc(self,spec:str, source_dir:str=None):
         """
         Builds a source RPM from a spec file
         """
@@ -151,7 +151,7 @@ class Mock:
             print('No SRPM found')
             sys.exit(1)
 
-    def buildRPM(srpm):
+    def buildRPM(self,srpm):
         """
         Builds an RPM from an SRPM
         """
