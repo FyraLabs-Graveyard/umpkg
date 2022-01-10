@@ -31,6 +31,16 @@ class Command:
                 # specs is now a list of spec files, so get the first one
                 specs = [specs[0]]
                 print(specs)
+                for spec in specs:
+                    # add .spec to the spec name if it's not already there
+                    if not spec.endswith('.spec'):
+                        spec += '.spec'
+                    srpm = self.buildSrc(spec)
+                    rpm = rpm_util.RPM.analyzeRPM(srpm)
+                    print(f"Adding {rpm['name']} to Koji in case it's not already there")
+                    koji_util.add(tag,rpm['name'])
+                    print(f"Pushing {rpm['name']} to Koji")
+                    koji_util.build(tag,srpm)
             else:
                 for spec in specs:
                     # add .spec to the spec name if it's not already there
@@ -95,7 +105,8 @@ class Command:
             return srpm
         elif build_method == 'mock':
             # use mock to build the source RPM
-            srpm = rpm_util.Mock.buildSrc(spec)
+            rpm_mock = rpm_util.Mock()
+            srpm = rpm_mock.buildSrc(spec)
             return srpm
 
     def buildRPM(self,srpm):

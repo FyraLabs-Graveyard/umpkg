@@ -17,7 +17,7 @@ def build(tag,path):
     ]
     if cfg['koji_profile'] != '':
         command.append(f'--profile={cfg["koji_profile"]}')
-
+    print(command)
     return os.system(' '.join(command))
 
 def add(tag,package):
