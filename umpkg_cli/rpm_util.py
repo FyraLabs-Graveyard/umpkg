@@ -38,9 +38,9 @@ class RPMBuild:
                 source_dir = pkgconfig['srcdir'] + '/' + spec.split('/')[-1].split('.')[0]
                 # check if the directory exists
                 if not os.path.exists(source_dir):
-                    # if not, use ~/rpmbuild/SOURCES
-                    print(f'{source_dir} not found, using ~/rpmbuild/SOURCES')
-                    source_dir = os.path.expanduser('~/rpmbuild/SOURCES/')
+                    # if not, use $PWD
+                    print(f'{source_dir} not found, using current directory')
+                    source_dir = os.getcwd()
         # build the source
         print(f'Building source RPM from {source_dir}')
         command = [

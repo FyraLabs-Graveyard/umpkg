@@ -84,7 +84,11 @@ class Command:
         """
         # first, check the config file for the build method
         cfg = config.read_config()
-        build_method = cfg['build_method']
+        globalcfg = config.readGlobalConfig()
+        try:
+            build_method = cfg['build_method']
+        except KeyError:
+            build_method = globalcfg['build_method']
         if build_method == 'rpmbuild':
             # use rpmbuild to build the source RPM
             srpm = rpm_util.RPMBuild.buildSrc(spec)
@@ -99,8 +103,12 @@ class Command:
         Builds the binary RPM from the source RPM
         """
         # first, check the config file for the build method
-        cfg = config.readGlobalConfig()
-        build_method = cfg['build_method']
+        cfg = config.read_config()
+        globalcfg = config.readGlobalConfig()
+        try:
+            build_method = cfg['build_method']
+        except KeyError:
+            build_method = globalcfg['build_method']
         if build_method == 'rpmbuild':
             # use rpmbuild to build the binary RPM
             rpm = rpm_util.RPMBuild.buildRPM(srpm)
