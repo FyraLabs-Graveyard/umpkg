@@ -131,6 +131,10 @@ class Mock:
         # build the source
         command = [
             'mock',
+            ]
+        if cfg['mock_chroot'] != '':
+            command += ['-r', cfg['mock_chroot']]
+        command += [
             '--buildsrpm',
             '--spec',
             spec,
@@ -139,10 +143,7 @@ class Mock:
             '--resultdir',
             'build/srpm',
             '--enable-network',
-            ]
-        if cfg['mock_chroot'] != '':
-            command.append('-r')
-            command.append(cfg['mock_chroot'])
+        ]
 
         command = ' '.join(command)
         try:
@@ -168,16 +169,16 @@ class Mock:
         """
         command = [
             'mock',
+            ]
+        if cfg['mock_chroot'] != '':
+            command += ['-r', cfg['mock_chroot']]
+        command += [
             '--rebuild',
             srpm,
             '--chain',
             '--localrepo',
             'build/repo',
-            ]
-        if cfg['mock_chroot'] != '':
-            command.append('-r')
-            command.append(cfg['mock_chroot'])
-
+        ]
         command = ' '.join(command)
         try:
             builder = os.system(command)

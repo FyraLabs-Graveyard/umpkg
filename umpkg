@@ -8,10 +8,14 @@ import umpkg_cli.cfg as config
 import umpkg_cli.util as util
 import umpkg_cli.rpm_util as rpm_util
 
+import umpkg_cli.koji_util as koji_util
+
 cfg = config.read_config()
 globalCfg = config.readGlobalConfig()
 
 app = typer.Typer()
+app.add_typer(koji_util.app, name='koji', help='Koji build system commands')
+app.add_typer(config.app, name='config', help='Configuration commands')
 @app.command()
 def buildsrc(
     path: str = typer.Argument(None, help="The path to the package"),
@@ -94,5 +98,23 @@ def get(
     """
     return util.Command.pullGitlab(None, project=name)
 
+
+@app.command()
+def help(
+    name: str = typer.Argument(None, help="The command to get help for"),
+):
+    """
+    Displays help for the specified command
+    """
+    if name is None:
+        app(args=['--help'])
+    else:
+        app(name)
+
 if __name__ == "__main__":
-    app()
+    # run help if no arguments are passed
+    if len(sys.argv) == 1:
+        app(args=['--help'])
+    else:
+        app()
+    
