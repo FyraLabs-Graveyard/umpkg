@@ -80,7 +80,7 @@ def build(
 @app.command()
 def push(
     tag: str = typer.Argument(..., help="The Koji tag to push"),
-    pkg: str = typer.Argument(None, help="The package name"),
+    pkg: str = typer.Argument(..., help="The package name"),
 ):
     """
     Builds and pushes a package to Koji
