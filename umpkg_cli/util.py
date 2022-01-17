@@ -15,57 +15,41 @@ class Command:
         """
         return os.system(f'koji build {tag} {path}')
 
-    def push(self,tag, pkg):
+    def push(self,tag, branch=None):
         """
-        Builds and pushes the SRPM to Koji
+        Pushes a git repository to Koji
         """
+        # Rewritten becuase I just realized non-admins cannot push SRPMs to Koji, thus we will push SCM links to Koji instead
+        # check if the SCM link is set in the config file
         cfg = config.read_config()
-        src = cfg['srcdir']
-        if not pkg:
-            # split the spec names by space
-            specs = cfg['spec'].split(' ')
-            if specs == ['']:
-                # find the first spec file in the current directory
-                specs = glob.glob('*.spec')
-                print(specs)
-                # specs is now a list of spec files, so get the first one
-                specs = [specs[0]]
-                print(specs)
-                for spec in specs:
-                    # add .spec to the spec name if it's not already there
-                    if not spec.endswith('.spec'):
-                        spec += '.spec'
-                    srpm = self.buildSrc(spec)
-                    rpm = rpm_util.RPM.analyzeRPM(srpm)
-                    print(f"Adding {rpm['name']} to Koji in case it's not already there")
-                    koji_util.add(tag,rpm['name'])
-                    print(f"Pushing {rpm['name']} to Koji")
-                    koji_util.build(tag,srpm)
-            else:
-                for spec in specs:
-                    # add .spec to the spec name if it's not already there
-                    if not spec.endswith('.spec'):
-                        spec += '.spec'
-                    srpm = self.buildSrc(spec)
-                    rpm = rpm_util.RPM.analyzeRPM(srpm)
-                    print(f"Adding {rpm['name']} to Koji in case it's not already there")
-                    koji_util.add(tag,rpm['name'])
-                    print(f"Pushing {rpm['name']} to Koji")
-                    koji_util.build(tag,srpm)
+        if cfg['git_repo'] != '':
+            # if it is, use the SCM link to push the package to Koji
+            gitLink = cfg['git_repo']
         else:
-            if not pkg.endswith('.spec'):
-                pkg += '.spec'
-            # check if the spec file exists
-            if os.path.exists(pkg):
-                srpm = self.buildSrc(pkg)
-                rpm = rpm_util.RPM.analyzeRPM(srpm)
-                print(f"Adding {rpm['name']} to Koji in case it's not already there")
-                koji_util.add(tag,rpm['name'])
-                print(f"Pushing {rpm['name']} to Koji")
-                koji_util.build(tag,srpm)
-            else:
-                print(f'Spec {pkg} not found')
-                sys.exit(1)
+            # else use git to get the remote URL
+            gitLink = subprocess.run(['git', 'remote', 'get-url', 'origin'], stdout=subprocess.PIPE).stdout.decode('utf-8').strip()
+        # now let's prepend git+ to the URL so Koji can understand it
+        gitLink = 'git+' + gitLink
+
+        if not branch:
+            # assume the branch name is the same as the tag name
+            # get the latest commit hash of the branch
+            branch = tag
+        gitCommit = subprocess.run(['git', 'rev-parse', branch], stdout=subprocess.PIPE).stdout.decode('utf-8').strip()
+        if gitCommit == branch:
+            print(f'Branch {branch} not found')
+            sys.exit(1)
+        # append #gitCommit to the gitLink
+        gitLink = gitLink + '#' + gitCommit
+        print(gitLink)
+
+        # check if the git repo has been pushed to origin
+        if not subprocess.run(['git', 'cherry', '-v', 'origin/' + branch], stdout=subprocess.PIPE).stdout.decode('utf-8').strip() == '':
+            # if it's not been pushed, error out
+            print(f'Branch {branch} not pushed to origin, please push it first')
+
+        return koji_util.build(tag,gitLink)
+
 
     def pullGitlab(self,project: str):
         """
