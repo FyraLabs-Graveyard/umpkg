@@ -23,7 +23,7 @@ class RPM:
 
 
 class RPMBuild:
-    def buildSrc(spec:str, source_dir:str=None):
+    def buildSrc(spec:str, source_dir:str=None, opts:list=None):
         """
         Builds a source RPM from a spec file
         """
@@ -56,6 +56,8 @@ class RPMBuild:
             '--undefine',
             '_disable_source_fetch',
             ]
+        if opts is not None:
+            command += opts
         command = ' '.join(command)
         try:
             builder = os.system(command)
@@ -74,7 +76,7 @@ class RPMBuild:
             print('No SRPM found')
             sys.exit(1)
 
-    def buildRPM(srpm):
+    def buildRPM(srpm, opts=None):
         """
         Builds an RPM from an SRPM
         """
@@ -91,6 +93,8 @@ class RPMBuild:
             '--undefine',
             '_disable_source_fetch',
             ]
+        if opts is not None:
+            command += opts # Opts should be an array of strings
         command = ' '.join(command)
         try:
             builder = os.system(command)
@@ -110,7 +114,7 @@ class RPMBuild:
             sys.exit(1)
 
 class Mock:
-    def buildSrc(self,spec:str, source_dir:str=None):
+    def buildSrc(self,spec:str, source_dir:str=None, opts:list=None):
         """
         Builds a source RPM from a spec file
         """
@@ -144,6 +148,8 @@ class Mock:
             'build/srpm',
             '--enable-network',
         ]
+        if opts is not None:
+            command += opts
 
         command = ' '.join(command)
         try:
@@ -163,7 +169,7 @@ class Mock:
             print('No SRPM found')
             sys.exit(1)
 
-    def buildRPM(self,srpm):
+    def buildRPM(self,srpm, opts=None):
         """
         Builds an RPM from an SRPM
         """
@@ -179,6 +185,8 @@ class Mock:
             '--localrepo',
             'build/repo',
         ]
+        if opts is not None:
+            command += opts
         command = ' '.join(command)
         try:
             builder = os.system(command)
