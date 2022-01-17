@@ -13,6 +13,19 @@ import umpkg_cli.koji_util as koji_util
 cfg = config.read_config()
 globalCfg = config.readGlobalConfig()
 
+# if --version or -v is passed, print the version and exit
+if '--version' in sys.argv or '-v' in sys.argv:
+    # get the version from setup.py
+    import pkg_resources
+    info = pkg_resources.require("umpkg")[0]
+    print(f'{info}, Copyright (c) 2021-22, umpkg Authors')
+    sys.exit(0)
+
+if '-h' in sys.argv:
+    # convert it to --help
+    sys.argv.remove('-h')
+    sys.argv.append('--help')
+
 app = typer.Typer()
 app.add_typer(koji_util.app, name='koji', help='Koji build system commands')
 app.add_typer(config.app, name='config', help='Configuration commands')
@@ -109,7 +122,20 @@ def help(
     if name is None:
         app(args=['--help'])
     else:
-        app(name)
+        app(args=[name, '--help'])
+
+@app.callback()
+def main(
+    # version with alias of -v
+    version: bool = typer.Option(False, '--version', '-v', help="Show the version"),
+):
+    """
+    Tool for quickly building packages for Ultramarine Linux
+    """
+    if version:
+        # get version from package's setup.py
+        import setup
+        print(setup.__version__)
 
 if __name__ == "__main__":
     # run help if no arguments are passed
@@ -117,4 +143,3 @@ if __name__ == "__main__":
         app(args=['--help'])
     else:
         app()
-    
