@@ -93,13 +93,13 @@ def build(
 @app.command()
 def push(
     tag: str = typer.Argument(..., help="The Koji tag to push"),
-    pkg: str = typer.Argument(..., help="The package name"),
+    branch: str = typer.Option(None, '--branch', '-b', help="The branch to push from"),
 ):
     """
     Builds and pushes a package to Koji
     """
     command = util.Command()
-    return command.push(tag, pkg)
+    return command.push(tag, branch)
 
 
 @app.command()
