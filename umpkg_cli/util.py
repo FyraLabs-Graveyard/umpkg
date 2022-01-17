@@ -47,6 +47,7 @@ class Command:
         if not subprocess.run(['git', 'cherry', '-v', 'origin/' + branch], stdout=subprocess.PIPE).stdout.decode('utf-8').strip() == '':
             # if it's not been pushed, error out
             print(f'Branch {branch} not pushed to origin, please push it first')
+            sys.exit(1)
 
         return koji_util.build(tag,gitLink)
 
