@@ -7,7 +7,7 @@ import glob
 import gitlab
 import umpkg_cli.rpm_util as rpm_util
 import umpkg_cli.koji_util as koji_util
-
+import subprocess
 class Command:
     def pushSRPM(tag, path):
         """
@@ -94,6 +94,10 @@ class Command:
         """
         # first, check the config file for the build method
         cfg = config.read_config()
+        # check if build_script is set in the config file
+        if cfg['build_script'] != '':
+            # run the build script as a subprocess
+            subprocess.run(cfg['build_script'], shell=True)
         globalcfg = config.readGlobalConfig()
         try:
             build_method = cfg['build_method']
