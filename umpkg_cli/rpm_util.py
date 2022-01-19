@@ -94,6 +94,7 @@ class RPMBuild:
             '"_srcrpmdir build/srpm"',
             "--undefine",
             "_disable_source_fetch",
+            "--enable-network",
         ]
         if opts is not None:
             command += opts  # Opts should be an array of strings
