@@ -17,21 +17,24 @@ cfg = config.read_config()
 globalCfg = config.readGlobalConfig()
 
 # if --version or -v is passed, print the version and exit
-if '--version' in sys.argv or '-v' in sys.argv:
+if "--version" in sys.argv or "-v" in sys.argv:
     # get the version from setup.py
     import pkg_resources
+
     info = pkg_resources.require("umpkg")[0]
-    print(f'{info}, Copyright (c) 2021-22, umpkg Authors')
+    print(f"{info}, Copyright (c) 2021-22, umpkg Authors")
     sys.exit(0)
 
-if '-h' in sys.argv:
+if "-h" in sys.argv:
     # convert it to --help
-    sys.argv.remove('-h')
-    sys.argv.append('--help')
+    sys.argv.remove("-h")
+    sys.argv.append("--help")
 
 app = typer.Typer()
-app.add_typer(koji_util.app, name='koji', help='Koji build system commands')
-app.add_typer(config.app, name='config', help='Configuration commands')
+app.add_typer(koji_util.app, name="koji", help="Koji build system commands")
+app.add_typer(config.app, name="config", help="Configuration commands")
+
+
 @app.command()
 def buildsrc(
     path: str = typer.Argument(None, help="The path to the package"),
@@ -42,24 +45,25 @@ def buildsrc(
     command = util.Command()
     if not path:
         # split the spec names by space
-        specs = cfg['spec'].split(' ')
+        specs = cfg["spec"].split(" ")
         for spec in specs:
             # add .spec to the spec name if it's not already there
-            if not spec.endswith('.spec'):
-                spec += '.spec'
+            if not spec.endswith(".spec"):
+                spec += ".spec"
             if os.path.exists(spec):
                 srpm = command.buildSrc(spec)
             else:
-                print(f'Spec {spec} not found')
+                print(f"Spec {spec} not found")
                 sys.exit(1)
     else:
-        if not path.endswith('.spec'):
-            path += '.spec'
+        if not path.endswith(".spec"):
+            path += ".spec"
         if os.path.exists(path):
             srpm = command.buildSrc(path)
         else:
-            print(f'Spec {path} not found')
+            print(f"Spec {path} not found")
             sys.exit(1)
+
 
 @app.command()
 def build(
@@ -71,32 +75,34 @@ def build(
     command = util.Command()
     if not path:
         # split the spec names by space
-        specs = cfg['spec'].split(' ')
+        specs = cfg["spec"].split(" ")
         for spec in specs:
             # add .spec to the spec name if it's not already there
-            if not spec.endswith('.spec'):
-                spec += '.spec'
+            if not spec.endswith(".spec"):
+                spec += ".spec"
             if os.path.exists(spec):
                 srpm = command.buildSrc(spec)
             else:
-                print(f'Spec {spec} not found')
+                print(f"Spec {spec} not found")
                 sys.exit(1)
     else:
-        if not path.endswith('.spec'):
-            path += '.spec'
+        if not path.endswith(".spec"):
+            path += ".spec"
         if os.path.exists(path):
             srpm = command.buildSrc(path)
         else:
-            print(f'Spec {path} not found')
+            print(f"Spec {path} not found")
             sys.exit(1)
 
     # now build it using mock. sorry folks too lazy to do it properly
     builder = rpm_util.Mock()
     builder.buildRPM(srpm)
+
+
 @app.command()
 def push(
     tag: str = typer.Argument(..., help="The Koji tag to push"),
-    branch: str = typer.Option(None, '--branch', '-b', help="The branch to push from"),
+    branch: str = typer.Option(None, "--branch", "-b", help="The branch to push from"),
 ):
     """
     Builds and pushes a package to Koji
@@ -123,14 +129,14 @@ def help(
     Displays help for the specified command
     """
     if name is None:
-        app(args=['--help'])
+        app(args=["--help"])
     else:
-        app(args=[name, '--help'])
+        app(args=[name, "--help"])
 
 
 @app.command()
 def init(
-    spec: bool = typer.Option(None, '--spec', '-s', help="Initialize a spec file"),
+    spec: bool = typer.Option(None, "--spec", "-s", help="Initialize a spec file"),
 ):
     """
     Initializes a umcfg configuration file
@@ -139,58 +145,59 @@ def init(
     # if spec is null, ask if they want to initialize a spec file
     if spec is None:
         # ask the user if they want to initialize a spec file
-        print('Do you want to initialize a spec file?')
-        print('[y/n]')
+        print("Do you want to initialize a spec file?")
+        print("[y/n]")
         while True:
-            ans = input('> ')
-            if ans == 'y':
+            ans = input("> ")
+            if ans == "y":
                 # initialize a spec file
                 spec = True
                 break
-            elif ans == 'n':
+            elif ans == "n":
                 # don't initialize a spec file
                 spec = False
                 break
             else:
-                print('Invalid input')
+                print("Invalid input")
     # if spec is true, initialize a spec file
     if spec:
         # ask the user for the package name
-        print('What will be the package name?')
+        print("What will be the package name?")
         while True:
-            name = input('> ')
+            name = input("> ")
             if name:
                 break
             else:
-                print('Invalid input')
+                print("Invalid input")
         # run the init command
-        os.system(f'rpmdev-newspec {name}')
+        os.system(f"rpmdev-newspec {name}")
     # read the local config file
     lcfg = config.defaults
     parser = configparser.ConfigParser()
 
     # add umcfg section
-    parser.add_section('umcfg')
+    parser.add_section("umcfg")
     for key, value in lcfg.items():
-        if parser.has_option('umpkg', key):
-            lcfg[key] = config.get('umpkg', key)
+        if parser.has_option("umpkg", key):
+            lcfg[key] = config.get("umpkg", key)
         else:
-            parser.set('umcfg', key, value)
+            parser.set("umcfg", key, value)
     # write the config file
-    with open('umpkg.cfg', 'w') as configfile:
+    with open("umpkg.cfg", "w") as configfile:
         parser.write(configfile)
     # write a gitignore file
-    with open('.gitignore', 'w') as gitignore:
-        gitignore.write('*.rpm\n')
-        gitignore.write('*.src.rpm\n')
-        gitignore.write('*.log\n')
-        gitignore.write('build/\n')
-        gitignore.write('.tar.*\n')
+    with open(".gitignore", "w") as gitignore:
+        gitignore.write("*.rpm\n")
+        gitignore.write("*.src.rpm\n")
+        gitignore.write("*.log\n")
+        gitignore.write("build/\n")
+        gitignore.write(".tar.*\n")
+
 
 @app.callback()
 def main(
     # version with alias of -v
-    version: bool = typer.Option(False, '--version', '-v', help="Show the version"),
+    version: bool = typer.Option(False, "--version", "-v", help="Show the version"),
 ):
     """
     Tool for quickly building packages for Ultramarine Linux
@@ -198,11 +205,13 @@ def main(
     if version:
         # get version from package's setup.py
         import setup
+
         print(setup.__version__)
+
 
 if __name__ == "__main__":
     # run help if no arguments are passed
     if len(sys.argv) == 1:
-        app(args=['--help'])
+        app(args=["--help"])
     else:
         app()
