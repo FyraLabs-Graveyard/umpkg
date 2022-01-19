@@ -11,7 +11,7 @@ setuptools.setup(
         'koji',
         'python-gitlab',
         'configparser',
-        'gitlab',
+        'python-gitlab',
     ],
     include_dirs=['umpkg_cli'],
     include_package_data=True,
