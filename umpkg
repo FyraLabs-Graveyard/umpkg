@@ -105,7 +105,7 @@ def push(
     branch: str = typer.Option(None, "--branch", "-b", help="The branch to push from"),
 ):
     """
-    Builds and pushes a package to Koji
+    Pushes the current repo to Koji
     """
     command = util.Command()
     return command.push(tag, branch)
