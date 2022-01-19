@@ -1,5 +1,8 @@
 #!/usr/bin/python3
 
+import configparser
+from multiprocessing.sharedctypes import Value
+from arrow import parser
 import koji
 import typer
 import os
@@ -123,6 +126,66 @@ def help(
         app(args=['--help'])
     else:
         app(args=[name, '--help'])
+
+
+@app.command()
+def init(
+    spec: bool = typer.Option(None, '--spec', '-s', help="Initialize a spec file"),
+):
+    """
+    Initializes a umcfg configuration file
+    """
+    # finish up
+    # if spec is null, ask if they want to initialize a spec file
+    if spec is None:
+        # ask the user if they want to initialize a spec file
+        print('Do you want to initialize a spec file?')
+        print('[y/n]')
+        while True:
+            ans = input('> ')
+            if ans == 'y':
+                # initialize a spec file
+                spec = True
+                break
+            elif ans == 'n':
+                # don't initialize a spec file
+                spec = False
+                break
+            else:
+                print('Invalid input')
+    # if spec is true, initialize a spec file
+    if spec:
+        # ask the user for the package name
+        print('What will be the package name?')
+        while True:
+            name = input('> ')
+            if name:
+                break
+            else:
+                print('Invalid input')
+        # run the init command
+        os.system(f'rpmdev-newspec {name}')
+    # read the local config file
+    lcfg = config.defaults
+    parser = configparser.ConfigParser()
+
+    # add umcfg section
+    parser.add_section('umcfg')
+    for key, value in lcfg.items():
+        if parser.has_option('umpkg', key):
+            lcfg[key] = config.get('umpkg', key)
+        else:
+            parser.set('umcfg', key, value)
+    # write the config file
+    with open('umpkg.cfg', 'w') as configfile:
+        parser.write(configfile)
+    # write a gitignore file
+    with open('.gitignore', 'w') as gitignore:
+        gitignore.write('*.rpm\n')
+        gitignore.write('*.src.rpm\n')
+        gitignore.write('*.log\n')
+        gitignore.write('build/\n')
+        gitignore.write('.tar.*\n')
 
 @app.callback()
 def main(
