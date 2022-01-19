@@ -189,6 +189,7 @@ class Mock:
             "--chain",
             "--localrepo",
             "build/repo",
+            "--enable-network",
         ]
         if opts is not None:
             command += opts
