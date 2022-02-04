@@ -3,7 +3,7 @@ import glob
 import sys
 import rpm
 
-import umpkg_cli.cfg as config
+import umpkg.cfg as config
 
 cfg = config.readGlobalConfig()
 pkgconfig = config.read_config()
@@ -190,6 +190,7 @@ class Mock:
             "--localrepo",
             "build/repo",
             "--enable-network",
+            '--force',
         ]
         if opts is not None:
             command += opts

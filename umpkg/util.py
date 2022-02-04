@@ -2,11 +2,11 @@ import koji
 import os
 import re
 import sys
-import umpkg_cli.cfg as config
+import umpkg.cfg as config
 import glob
 import gitlab
-import umpkg_cli.rpm_util as rpm_util
-import umpkg_cli.koji_util as koji_util
+import umpkg.rpm_util as rpm_util
+import umpkg.koji_util as koji_util
 import subprocess
 
 

@@ -1,11 +1,12 @@
 # Set up modules for the package
+from importlib.metadata import entry_points
 import setuptools
 import os
 
 setuptools.setup(
     name="umpkg",
     fullname="Ultramarine Packaging Tool",
-    version="0.1.3",
+    version="0.2.0",
     author="Cappy Ishihara",
     install_requires=[
         "typer",
@@ -13,11 +14,15 @@ setuptools.setup(
         "python-gitlab",
         "configparser",
         "python-gitlab",
+        "pygit2",
     ],
-    include_dirs=["umpkg_cli"],
+    include_dirs=["umpkg"],
     include_package_data=True,
-    scripts=["./umpkg"],
-    packages=["umpkg_cli"],
-    package_dir={"umpkg_cli": "umpkg_cli"},
+    packages=["umpkg"],
+    package_dir={"umpkg": "umpkg"},
     python_requires=">=3.10",
+    entry_points={"console_scripts": [
+        "umpkg=umpkg.__main__:main",
+        "umpkg-repo=umpkg.repo:main",
+        ]},
 )

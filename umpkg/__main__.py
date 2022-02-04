@@ -7,11 +7,11 @@ import koji
 import typer
 import os
 import sys
-import umpkg_cli.cfg as config
-import umpkg_cli.util as util
-import umpkg_cli.rpm_util as rpm_util
-
-import umpkg_cli.koji_util as koji_util
+import umpkg.cfg as config
+import umpkg.util as util
+import umpkg.rpm_util as rpm_util
+import umpkg.koji_util as koji_util
+import umpkg.repo as repo
 
 cfg = config.read_config()
 globalCfg = config.readGlobalConfig()
@@ -22,7 +22,7 @@ if "--version" in sys.argv or "-v" in sys.argv:
     import pkg_resources
 
     info = pkg_resources.require("umpkg")[0]
-    print(f"{info}, Copyright (c) 2021-22, umpkg Authors")
+    print(f"{info}, Copyright (c) 2021-22, Ultramarine Linux Team")
     sys.exit(0)
 
 if "-h" in sys.argv:
@@ -33,6 +33,7 @@ if "-h" in sys.argv:
 app = typer.Typer()
 app.add_typer(koji_util.app, name="koji", help="Koji build system commands")
 app.add_typer(config.app, name="config", help="Configuration commands")
+app.add_typer(repo.app, name="repo", help="Local Repository commands")
 
 
 @app.command()
@@ -176,12 +177,12 @@ def init(
     parser = configparser.ConfigParser()
 
     # add umcfg section
-    parser.add_section("umcfg")
+    parser.add_section("umpkg")
     for key, value in lcfg.items():
         if parser.has_option("umpkg", key):
             lcfg[key] = config.get("umpkg", key)
         else:
-            parser.set("umcfg", key, value)
+            parser.set("umpkg", key, value)
     # write the config file
     with open("umpkg.cfg", "w") as configfile:
         parser.write(configfile)
@@ -200,7 +201,7 @@ def main(
     version: bool = typer.Option(False, "--version", "-v", help="Show the version"),
 ):
     """
-    Tool for quickly building packages for Ultramarine Linux
+    The Ultramarine Linux packager tool
     """
     if version:
         # get version from package's setup.py

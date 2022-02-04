@@ -1,7 +1,7 @@
 # require all the modules here
 
-import umpkg_cli
+import umpkg
 
 __all__ = [
-    'umpkg_cli',
+    'umpkg',
 ]

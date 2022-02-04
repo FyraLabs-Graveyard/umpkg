@@ -1,6 +1,6 @@
 import os
-import umpkg_cli.util as util
-import umpkg_cli.cfg as config
+import umpkg.util as util
+import umpkg.cfg as config
 import typer
 
 cfg = config.readGlobalConfig()

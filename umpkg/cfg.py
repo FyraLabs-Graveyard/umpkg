@@ -43,6 +43,7 @@ globalDefaults = {
     "username": "",
     "build_method": "rpmbuild",
     "mock_chroot": "",
+    "repo_dir": "~/.umpkg/repo"
 }
 
 
