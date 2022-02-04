@@ -3,11 +3,9 @@
 Packaging scripts for Ultramarine, based on the old makefiles for the Ultramarine release packages.
 
 `umpkg` is a set of Python scripts that is used for building packages for Ultramarine Linux.
-It is a wrapper around Koji, RPMBuild, and the GitLab API.
+It is a wrapper around Koji, RPMBuild, Mock, and the GitLab API.
 
-umpkg is inspired by the likes of fedpkg and Rocky Linux's rockybuild.
-
-The idea originally stemmed from Lapis, a seperate RPM build system initially made as an attempt to replace Koji.
+umpkg is inspired by the likes of `fedpkg` and Rocky Linux's `rockybuild`, minus the usage of dist-git.
 
 umpkg uses a configuration file called `umpkg.cfg` to define the build environment, specifying where to find the source code, the scripts (or a lack of them) to generate the source files for the package.
 
@@ -23,23 +21,33 @@ If the package is not defined, then it will build every single package defined i
 
 You can also build locally by running:
 ```
-umpkg build <package>
+umpkg build <spec file>
 ```
+
+To fetch an existing package from Ultramarine GitLab's package sources repository, run:
+```
+umpkg get <package>
+```
+
+umpkg also supports the ability to generate a full git mirror of the package sources repository, and an ability to generate a local repository of the built packages for testing.
+
+To do this, check out `umpkg repo --help` for more information.
+
+### umpkg Local Repository mode
+
+You can use the Local Repository mode to fetch, build, and generate a test repository within the configured folder in `~/.config/umpkg.cfg`.
+
+Use `umpkg repo get-all` to clone all packages from the Ultramarine GitLab repository, and `umpkg repo build-all` to build all of them. (This will take a toll on the GitLab server and your internet, so be careful.)
+
+Or you can use `umpkg repo get <package>` to clone a single package, and `umpkg repo build <package>` to build it.
+
 
 ## Configuration
 In order to use umpkg, you need to create a configuration file called `umpkg.cfg` in the same directory as the spec file, or set the path manually in your configuration file, which can be a list.
 
-The example configuration file is as follows:
+To generate a configuration file, run:
 ```
-[umpkg]
-spec=package.spec
-tag=um35 # The Koji tag to push to
-build_mode=local # The build mode to use, local will build the SRPM locally, and koji will push the git repo to Koji
-build_script=make sources # The script to run before building the SRPM, if any
-
-## Koji mode specific settings
-git_repo=https://example.com/example.git # the git repo to push to Koji
-git_ref=HEAD # The ref that will be added after the repo link, like #HEAD or #master
+umpkg init
 ```
 
 if the configuration file is not found, umpkg will directly build the package and assume the source files are in the same directory as the spec file.
@@ -53,31 +61,6 @@ package/
 └── package-patch.patch
 ```
 
-For multiple packages, your config file should look like this:
-```
-[umpkg]
-spec=pkg1.spec pkg2.spec pkg3.spec
-tag=um35
-build_mode=local
-build_script=make sources
-```
-And your structure should look like this:
-```
-package/
-├── umpkg.cfg
-├── pkg1.spec
-├── pkg2.spec
-├── pkg3.spec
-└── sources/
-    └── pkg1/
-        ├── pkg1-src.tar.gz
-        └── pkg1-patch.patch
-    └── pkg2/
-        ├── pkg2-src.tar.gz
-        └── pkg2-patch.patch
-    └── pkg3/
-        ├── pkg3-src.tar.gz
-        └── pkg3-patch.patch
-```
+You can find out more about umpkg by running `umpkg <command> --help`.
 
 And with that, everything's ready to go! Happy packaging!
