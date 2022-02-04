@@ -21,8 +21,9 @@ setuptools.setup(
     packages=["umpkg"],
     package_dir={"umpkg": "umpkg"},
     python_requires=">=3.10",
+    # run __main__.py
     entry_points={"console_scripts": [
-        "umpkg=umpkg.__main__:main",
-        "umpkg-repo=umpkg.repo:main",
+        "umpkg=umpkg.__main__:entrypoint",
+        "umpkg-repo=umpkg.repo:app",
         ]},
 )

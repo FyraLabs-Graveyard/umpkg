@@ -216,3 +216,9 @@ if __name__ == "__main__":
         app(args=["--help"])
     else:
         app()
+
+def entrypoint():
+    if len(sys.argv) == 1:
+        app(args=["--help"])
+    else:
+        app()
