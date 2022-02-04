@@ -6,7 +6,7 @@ import os
 setuptools.setup(
     name="umpkg",
     fullname="Ultramarine Packaging Tool",
-    version="0.2.0",
+    version="0.2.1",
     author="Cappy Ishihara",
     install_requires=[
         "typer",
