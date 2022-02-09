@@ -190,7 +190,6 @@ class Mock:
             "--localrepo",
             "build/repo",
             "--enable-network",
-            '--force',
         ]
         if opts is not None:
             command += opts
