@@ -3,3 +3,4 @@ koji==1.27.0
 python_gitlab==2.7.1
 setuptools==57.4.0
 typer==0.4.0
+click<=8.1.0
