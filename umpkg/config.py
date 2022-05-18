@@ -42,3 +42,13 @@ def read_globalcfg() -> dict[str, str]:
         toml.dump(dft_gbl, open(path, 'w+'))
         logger.warn("Created global config file at " + path)
         return dft_gbl
+
+
+def write_cfg(cfg: dict[str, str]) -> None:
+    toml.dump(cfg, open(PATH, 'w+'))
+
+
+def write_globalcfg(cfg: dict[str, str]) -> None:
+    path = GLOBAL_PATH.replace('~', home)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    toml.dump(cfg, open(path, 'w+'))

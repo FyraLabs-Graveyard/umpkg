@@ -13,6 +13,9 @@ from umpkg.utils import err
 from .config import read_cfg
 from .log import get_logger
 from .monogatari import Session
+from .rpm_util import _devenv_setup
+
+from .config import read_cfg, write_cfg, dft_cfg
 
 sys.argv = [val if val != "-h" else "--help" for val in sys.argv]
 logger = get_logger(__name__)
@@ -94,6 +97,19 @@ def version():
     import setup
 
     return print(setup.__version__)
+
+
+@app.command()
+def init():
+    """Initializes a umpkg project"""
+    # TODO: generate a spec file for ultramarine
+    write_cfg(dft_cfg)
+
+
+@app.command()
+def setup():
+    """Sets up a umpkg development environment"""
+    _devenv_setup()
 
 
 def main():
