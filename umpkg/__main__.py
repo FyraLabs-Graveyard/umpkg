@@ -5,7 +5,7 @@ import typer
 from umpkg.build import build_rpm, build_src_from_spec
 from .rpm_util import _devenv_setup
 
-from .config import read_cfg
+from .config import read_cfg, write_cfg, dft_cfg
 from . import log
 
 sys.argv = [val if val != '-h' else '--help' for val in sys.argv]
@@ -47,7 +47,7 @@ def version():
 def init():
     """Initializes a umpkg project"""
     # TODO: generate a spec file for ultramarine
-
+    write_cfg(dft_cfg)
 
 
 @app.command()
