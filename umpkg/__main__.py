@@ -13,7 +13,7 @@ from umpkg.utils import err
 from .config import read_cfg
 from .log import get_logger
 from .monogatari import Session
-from .rpm_util import _devenv_setup
+from .rpm_util import devenv_setup
 
 from .config import read_cfg, write_cfg, dft_cfg
 
@@ -31,7 +31,7 @@ def build(path: str = Argument(".", help="The path to the package.")):
     tasks: list[asyncio.Task[Any]] = []
     builds: list[Build] = []
     for cfg in cfgs.values():
-        b = Build(path, cfg, cfg['spec'])
+        b = Build(path, cfg, cfg["spec"])
         tasks.append(loop.create_task(b.rpm()))
         builds.append(b)
     loop.run_until_complete(
@@ -42,13 +42,13 @@ def build(path: str = Argument(".", help="The path to the package.")):
 
 
 @app.command()
-def buildsrc(path: str = Argument('.', help="The path to the package.")):
+def buildsrc(path: str = Argument(".", help="The path to the package.")):
     """Builds source RPM from a spec file."""
-    cfgs = read_cfg(join(path, 'umpkg.toml'))
+    cfgs = read_cfg(join(path, "umpkg.toml"))
     tasks: list[asyncio.Task[Any]] = []
     builds: list[Build] = []
     for cfg in cfgs.values():
-        b = Build(path, cfg, cfg['spec'])
+        b = Build(path, cfg, cfg["spec"])
         tasks.append(loop.create_task(b.src()))
         builds.append(b)
     loop.run_until_complete(
@@ -57,12 +57,15 @@ def buildsrc(path: str = Argument('.', help="The path to the package.")):
     num = sum(bool(t.result()) for t in tasks)
     logger.info(f"Built {num} packages")
 
+
 @app.command()
 def push(
     tag: str = Argument(..., help="The koji tag to push"),
     branch: str = Option(None, "--branch", "-b", help="The branch to push from"),
     repo: str = Option("origin", "--repo", "-r"),
-    dir: str = Option(".", "--dir", "-d", help="The directory where umpkg.toml is located")
+    dir: str = Option(
+        ".", "--dir", "-d", help="The directory where umpkg.toml is located"
+    ),
 ):
     logger.debug(f"Changing directory to {dir}")
     chdir(dir)
@@ -109,7 +112,7 @@ def init():
 @app.command()
 def setup():
     """Sets up a umpkg development environment"""
-    _devenv_setup()
+    devenv_setup()
 
 
 def main():

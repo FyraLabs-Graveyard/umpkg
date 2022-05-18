@@ -5,6 +5,7 @@ from glob import glob
 from os import getcwd, path
 import os
 from pathlib import Path
+import shutil
 from typing import Callable, TypeVar
 
 from .utils import err, run, SLEEP
@@ -129,7 +130,7 @@ class Mock:
             "--enable-network",
         ]
 
-def _devenv_setup():
+def devenv_setup():
     """Sets up a developer environment for Ultramarine"""
     logger.info("Setting up Koji profile")
     # make ~/.koji
