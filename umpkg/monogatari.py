@@ -11,13 +11,14 @@ logger = get_logger(__name__)
 
 
 class Session:
-    cfg: ConfigParser
+    cfg: dict [str,Any]
     server: str
     session: koji.ClientSession
     def __init__(self, profile: str = 'ultramarine'):
         self.prof = koji.get_profile_module(profile)
         self.session: koji.ClientSession = self.prof.ClientSession(self.prof.config.server)
         self.cfg = self.prof.config
+        self.session.gssapi_login()
 
     def build(self, src: str, target: str, opts: dict[str, Any]) -> Literal[0]|Literal[1]:
         #? https://github.com/koji-project/koji/blob/master/cli/koji_cli/commands.py#L570
@@ -28,4 +29,4 @@ class Session:
             sys.exit(1)
         id: int = self.session.build(src, target, opts)
         self.session.logout()
-        return kojilib.watch_tasks(session, [id], poll_interval=1)
+        return kojilib.watch_tasks(self.session, [id], poll_interval=1)
