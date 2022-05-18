@@ -3,7 +3,9 @@ from asyncio import sleep
 from contextlib import suppress
 from glob import glob
 from os import getcwd, path
+import os
 from pathlib import Path
+import shutil
 from typing import Callable
 
 from .utils import err, run
@@ -120,3 +122,16 @@ class Mock:
             "build/repo",
             "--enable-network",
         ]
+
+def _devenv_setup():
+    """Sets up a developer environment for Ultramarine"""
+    logger.info("Setting up Koji profile")
+    # make ~/.koji
+    if not path.exists(path.expanduser("~/.koji/config.d/")):
+        os.makedirs(path.expanduser("~/.koji/config.d/"))
+    shutil.copyfile(
+        os.path.dirname(os.path.abspath(__file__)) + "/assets/ultramarine.conf",
+        path.expanduser("~/.koji/config.d") + "/ultramarine.conf"
+    )
+    logger.info("Setting up RPM build environment")
+    run(["rpmdev-setuptree"])

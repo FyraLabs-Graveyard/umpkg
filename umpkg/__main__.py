@@ -3,6 +3,7 @@ import sys
 import typer
 
 from umpkg.build import build_rpm, build_src_from_spec
+from .rpm_util import _devenv_setup
 
 from .config import read_cfg
 from . import log
@@ -40,6 +41,19 @@ def version():
     """Shows the version and exit."""
     import setup
     return print(setup.__version__)
+
+
+@app.command()
+def init():
+    """Initializes a umpkg project"""
+    # TODO: generate a spec file for ultramarine
+
+
+
+@app.command()
+def setup():
+    """Sets up a umpkg development environment"""
+    _devenv_setup()
 
 
 def main():
