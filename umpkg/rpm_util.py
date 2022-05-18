@@ -4,33 +4,36 @@ from contextlib import suppress
 from glob import glob
 from os import getcwd, path
 from pathlib import Path
-from typing import Callable
+from typing import Callable, TypeVar
 
-from .utils import err, run
-from .config import read_cfg, read_globalcfg
+from .utils import err, run, SLEEP
+from .config import read_globalcfg
 from .log import get_logger
 
 logger = get_logger(__name__)
 cfg = read_globalcfg()
-pkgconfig = read_cfg()
-SLEEP = 0.2  # sleep interval
+T = TypeVar('T', 'Mock', 'RPMBuild')
 
-def _buildsrc(fn: Callable[[str, str], list[str]]):
-    async def buildsrc(spec: str, srcdir: str = '', opts: list[str] = []):
+def _buildsrc(fn: Callable[[T, str, str], list[str]]):
+    async def buildsrc(self: T, spec: str, srcdir: str = '', opts: list[str] = []):
         """Builds a source RPM from a spec file"""
-        srcdir = srcdir or path.join(pkgconfig['srcdir'], Path(spec).stem)
+        srcdir = srcdir or path.join(self.cfg.get('srcdir', 'build/src'), Path(spec).stem)
         if not path.exists(srcdir):
             logger.warn("No valid srcdir cfg, using cwd")
             srcdir = getcwd()
 
         logger.info(f"{spec[:-5]}: building from {srcdir}")
-        cmd = fn(spec, srcdir) + opts
+        cmd = fn(self, spec, srcdir) + opts
+
+        # mock cannot parse Popen with lists correctly.
+        # Thanks mock devs!!!!!!!!111
+        cmd = ' '.join([f'"{c}"' if ' ' in c else c for c in cmd])
         
         proc = run(cmd)
-        while not (rc := proc.poll()):
+        while (rc := proc.poll()) is None:
             await sleep(SLEEP)
         if rc:
-            return err('FAIL TO BUILD SRPM', proc, spec=spec, log=logger)
+            return err('FAIL TO BUILD SRPM', proc, spec=spec, log=logger, cmd=cmd)
         # get the newest file in build/srpm
         files = glob("build/srpm/*.src.rpm")
         with suppress(ValueError):
@@ -38,16 +41,17 @@ def _buildsrc(fn: Callable[[str, str], list[str]]):
         logger.error(f"{spec[:-5]}: No SRPM found")
     return buildsrc
 
-def _buildrpm(fn: Callable[[str], list[str]]):
-    async def buildRPM(srpm: str, opts: list[str] = []):
-        cmd = fn(srpm) + opts
+def _buildrpm(fn: Callable[[T, str], list[str]]):
+    async def buildRPM(self: T, srpm: str, opts: list[str] = []):
+        cmd = fn(self, srpm) + opts
+        cmd = ' '.join([f'"{c}"' if ' ' in c else c for c in cmd])
         proc = run(cmd)
-        while not (rc := proc.poll()):
+        while not (rc := proc.poll()) is None:
             await sleep(SLEEP)
         if rc:
             return err('FAIL TO BUILD RPM', proc, srpm=srpm, log=logger)
         # get the newest file in build/rpm
-        files = glob("build/rpm/*.rpm")
+        files = glob("build/rpm/*.rpm") + glob("build/repo/results/default/**/*.rpm")
         with suppress(ValueError):
             return max(files, key=path.getmtime)
         logger.error(f"{srpm[:-5]}: No RPM found")
@@ -55,9 +59,11 @@ def _buildrpm(fn: Callable[[str], list[str]]):
 
 
 class RPMBuild:
-    @staticmethod
+    def __init__(self, cfg: dict[str, str]):
+        self.cfg = cfg
+
     @_buildsrc
-    def buildsrc(spec: str, srcdir: str):
+    def buildsrc(self, spec: str, srcdir: str):
         return [
             "rpmbuild",
             "-bs",
@@ -73,15 +79,14 @@ class RPMBuild:
         ]
 
     #? idk if we should have this but I've done it anyway
-    @staticmethod
     @_buildrpm
-    def buildRPM(srpm: str):
+    def buildRPM(self, srpm: str):
         return [
             "rpmbuild",
             "-bb",
             srpm,
             "--define",
-            '_sourcedir .',  #! this looks... huh?
+            '_sourcedir build/src',  #! this looks... huh?
             "--define",
             '_rpmdir build/rpm',
             "--define",
@@ -92,10 +97,13 @@ class RPMBuild:
 
 
 class Mock:
-    @staticmethod
+    def __init__(self, cfg: dict[str, str]):
+        self.cfg = cfg
+
     @_buildsrc
-    def buildsrc(spec: str, srcdir: str):
+    def buildsrc(self, spec: str, srcdir: str):
         return [
+            "mock",
             "--buildsrpm",
             "--spec",
             spec,
@@ -103,14 +111,13 @@ class Mock:
             srcdir,
             "--resultdir",
             "build/srpm",
-            "--enable-network"
+            "--enable-network",
         ]
 
-    @staticmethod
     @_buildrpm
-    def buildRPM(srpm: str):
+    def buildRPM(self, srpm: str):
         cmd = ["mock"]
-        if cfg["mock_chroot"]:
+        if self.cfg.get("mock_chroot", ''):
             cmd += ["-r", cfg["mock_chroot"]]
         return cmd + [
             "--rebuild",
