@@ -63,9 +63,7 @@ def push(
     tag: str = Argument(..., help="The koji tag to push"),
     branch: str = Option(None, "--branch", "-b", help="The branch to push from"),
     repo: str = Option("origin", "--repo", "-r"),
-    dir: str = Option(
-        ".", "--dir", "-d", help="The directory where umpkg.toml is located"
-    ),
+    dir: str = Option(".", "--dir", "-d", help="Where umpkg.toml is located"),
 ):
     logger.debug(f"Changing directory to {dir}")
     chdir(dir)
@@ -90,7 +88,27 @@ def push(
         logger.info("Build successful")
     else:
         logger.error(
-            f'Build was not successful, try running "koji build --{profile=} {tag} {branch}" yourself'
+            'Build was not successful, '
+            f'try running "koji build --{profile=} {tag} {branch}" yourself'
+        )
+
+
+@app.command()
+def add(
+    tag: str = Argument(..., help="The koji tag to add"),
+    dir: str = Option(".", "--dir", "-d", help="Where umpkg.toml is located"),
+):
+    logger.debug(f"Changing directory to {dir}")
+    chdir(dir)
+    cfg = [x for i, x in enumerate(read_cfg().items()) if not i][0]
+    name = cfg[0]
+    if Session().add(tag, name):
+        logger.info(f"Successfully added {name} to koji.")
+    else:
+        profile = cfg[1].get("koji_profile", "ultramarine")
+        logger.error(
+            f"Failed to add {name} to koji, "
+            f'try running "koji add-pkg --{profile=} {tag} {name}" yourself'
         )
 
 
