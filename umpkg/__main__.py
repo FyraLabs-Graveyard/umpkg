@@ -84,7 +84,7 @@ def push(
         )
 
     profile = cfg.get("koji_profile", "ultramarine")
-    if Session().build(tag, branch, {"profile": profile}):
+    if Session().build(link, branch, {"profile": profile}):
         logger.info("Build successful")
     else:
         logger.error(
