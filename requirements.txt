@@ -2,3 +2,6 @@ toml
 koji
 setuptools
 typer
+pygithub
+python-gitlab
+pygit2

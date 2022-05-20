@@ -19,7 +19,6 @@ class Session:
         self.session = self.prof.ClientSession(self.prof.config.server)
         self.cfg = self.prof.config
         self.session.gssapi_login()
-        logger.debug(self.prof)
 
     def build(self, src: str, target: str, opts: dict[str, Any]) -> Literal[0, 1]:
         # ? https://github.com/koji-project/koji/blob/master/cli/koji_cli/commands.py#L570

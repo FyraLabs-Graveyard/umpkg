@@ -10,7 +10,8 @@ from typer import Argument, Option, Typer
 from umpkg.build import Build
 from umpkg.utils import err
 
-from .config import read_cfg
+from .config import read_cfg, read_globalcfg
+from .git import clone
 from .log import get_logger
 from .monogatari import Session
 from .rpm_util import devenv_setup
@@ -65,6 +66,7 @@ def push(
     repo: str = Option("origin", "--repo", "-r"),
     dir: str = Option(".", "--dir", "-d", help="Where umpkg.toml is located"),
 ):
+    """Push a package to koji."""
     logger.debug(f"Changing directory to {dir}")
     chdir(dir)
     cfg = [x for i, x in enumerate(read_cfg().values()) if not i][0]
@@ -98,6 +100,7 @@ def add(
     tag: str = Argument(..., help="The koji tag to add"),
     dir: str = Option(".", "--dir", "-d", help="Where umpkg.toml is located"),
 ):
+    """Add a package to koji."""
     logger.debug(f"Changing directory to {dir}")
     chdir(dir)
     cfg = [x for i, x in enumerate(read_cfg().items()) if not i][0]
@@ -119,17 +122,27 @@ def version():
 
     return print(setup.__version__)
 
-
 @app.command()
-def init():
-    """Initializes a umpkg project"""
+def init(name: str = Argument(..., help="Name of the project")):
+    """Initializes a umpkg project."""
     # TODO: generate a spec file for ultramarine
     write_cfg(dft_cfg)
 
+@app.command()
+def get(
+    repo: str = Argument(..., help="Name of the repository"),
+    dir: str = Option('name of the repo', '--dir', '-d', "The directory to clone to")
+):
+    """Clone a git repo."""
+    if dir == 'name of the repo': dir = repo
+    url = read_globalcfg()['repourl']
+    if not url.endswith('/'): url += '/'
+    url += repo
+    clone(url, dir)
 
 @app.command()
 def setup():
-    """Sets up a umpkg development environment"""
+    """Sets up a umpkg development environment."""
     devenv_setup()
 
 
