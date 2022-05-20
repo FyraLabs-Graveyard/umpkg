@@ -52,8 +52,18 @@ class Build:
         if not srpm:
             logger.warn(f"{spec[:-5]}: Skipping RPM build due to buildsrc error")
             return 0
-
-        rpm = await Mock(self.cfg).buildRPM(srpm)
+        buildMethod = self.cfg.get("build_method", "") or read_globalcfg().get(
+            "build_method", ""
+        )
+        
+        match buildMethod:
+            case "rpmbuild":
+                logger.info(f"{spec[:-5]}: rpmbuild")
+                rpm = await RPMBuild(self.cfg).buildRPM(srpm)
+            case "mock":
+                logger.info(f"{spec[:-5]}: mock")
+                rpm = await Mock(self.cfg).buildRPM(srpm)
+        #rpm = await Mock(self.cfg).buildRPM(srpm)
         if rpm:
             logger.info(f"{spec[:-5]}: Built RPM at {rpm}")
             return 1

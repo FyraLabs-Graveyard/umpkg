@@ -27,6 +27,7 @@ asyncio.set_event_loop(loop)
 @app.command()
 def build(path: str = Argument(".", help="The path to the package.")):
     """Builds a package from source."""
+    chdir(path)
     cfgs = read_cfg(join(path, "umpkg.toml"))
     tasks: list[asyncio.Task[Any]] = []
     builds: list[Build] = []

@@ -66,6 +66,8 @@ class RPMBuild:
 
     @_buildsrc
     def buildsrc(self, spec: str, srcdir: str):
+        # turn srcdir into an absolute path
+        srcdir = path.abspath(srcdir)
         return [
             "rpmbuild",
             "-bs",
@@ -85,10 +87,8 @@ class RPMBuild:
     def buildRPM(self, srpm: str):
         return [
             "rpmbuild",
-            "-bb",
+            "--rebuild",
             srpm,
-            "--define",
-            '_sourcedir build/src',  #! this looks... huh?
             "--define",
             '_rpmdir build/rpm',
             "--define",
