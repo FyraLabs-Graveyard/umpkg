@@ -26,7 +26,9 @@ class Build:
 
         # we can probably run the script in parallel
         if bs := self.cfg.get("build_script", ""):
-            self.tasks.append(create_task(run_bs(spec, bs, logger)))
+            # insert the run_bs task before the build task
+            self.tasks.insert(0, create_task(run_bs(spec, bs, logger)))
+            #self.tasks.append(create_task(run_bs(spec, bs, logger)))
 
         buildMethod = self.cfg.get("build_method", "") or read_globalcfg().get(
             "build_method", ""

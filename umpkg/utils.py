@@ -5,8 +5,10 @@ from logging import Logger
 SLEEP = 0.2  # sleep interval
 
 
-def run(cmd: list[str] | str):
-    return Popen(cmd, stderr=STDOUT, stdout=PIPE, shell=True, universal_newlines=True)
+def run(cmd: list[str] | str, show_cmd: bool = False):
+    if show_cmd == True:
+        print(f"- {cmd.join(' ')}")
+    return Popen(cmd, stderr=STDOUT, shell=True, universal_newlines=True)
 
 def err(title: str, proc: Popen[str]|str, log: Logger, **kws: str):
     out = f"\n### {title} ###\n"

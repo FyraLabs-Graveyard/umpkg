@@ -64,6 +64,7 @@ def push(
     branch: str = Option(None, "--branch", "-b", help="The branch to push from"),
     repo: str = Option("origin", "--repo", "-r"),
     dir: str = Option(".", "--dir", "-d", help="Where umpkg.toml is located"),
+    scratch: bool = Option(False, "--scratch", "-s", help="Use scratch build"),
 ):
     logger.debug(f"Changing directory to {dir}")
     chdir(dir)
@@ -84,6 +85,15 @@ def push(
         )
 
     profile = cfg.get("koji_profile", "ultramarine")
+    # TODO: Make this cleaner, we should use try/except tbh
+    if scratch:
+        if Session().build(link, branch, {"profile": profile, "scratch": True}):
+            logger.info("Build successful")
+    else:
+        logger.error(
+            'Build was not successful, '
+            f'try running "koji build --{profile=} {tag} {branch}" yourself'
+        )
     if Session().build(link, branch, {"profile": profile}):
         logger.info("Build successful")
     else:

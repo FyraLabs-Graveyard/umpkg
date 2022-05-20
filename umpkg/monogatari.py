@@ -29,6 +29,7 @@ class Session:
             logger.error("Please login to koji first.")
             sys.exit(1)
         id: int = self.session.build(src, target, opts)
+        logger.info(f"Task info at {self.prof.config.weburl}/taskinfo?taskID={id}")
         self.session.logout()
         return kojilib.watch_tasks(self.session, [id], poll_interval=1)
 
