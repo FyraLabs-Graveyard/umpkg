@@ -28,6 +28,7 @@ asyncio.set_event_loop(loop)
 @app.command()
 def build(path: str = Argument(".", help="The path to the package.")):
     """Builds a package from source."""
+    chdir(path)
     cfgs = read_cfg(join(path, "umpkg.toml"))
     tasks: list[asyncio.Task[Any]] = []
     builds: list[Build] = []
@@ -58,17 +59,27 @@ def buildsrc(path: str = Argument(".", help="The path to the package.")):
     num = sum(bool(t.result()) for t in tasks)
     logger.info(f"Built {num} packages")
 
+@app.command()
+def bs(path: str = Argument(".", help="The path to the package.")):
+    """Run build scripts"""
+    cfgs = read_cfg(join(path, "umpkg.toml"))
+    for name, cfg in cfgs.items():
+        
+
 
 @app.command()
 def push(
     tag: str = Argument(..., help="The koji tag to push"),
-    branch: str = Option(None, "--branch", "-b", help="The branch to push from"),
+    branch: str = Option(None, "--branch", "-b", help="The branch to push from", show_default='same as the tag'),
     repo: str = Option("origin", "--repo", "-r"),
+<<<<<<< Updated upstream
     dir: str = Option(".", "--dir", "-d", help="Where umpkg.toml is located"),
+    scratch: bool = Option(False, "--scratch", "-s", help="Use scratch build"),
+=======
+    dir: str = Option(".", "--dir", "-d", help="Where umpkg.toml is located", callback=chdir),
+>>>>>>> Stashed changes
 ):
     """Push a package to koji."""
-    logger.debug(f"Changing directory to {dir}")
-    chdir(dir)
     cfg = [x for i, x in enumerate(read_cfg().values()) if not i][0]
     link = cfg["git_repo"] or getoutput(f"git remote get-url {repo}").strip()
     if link.startswith("fatal"):
@@ -86,6 +97,15 @@ def push(
         )
 
     profile = cfg.get("koji_profile", "ultramarine")
+    # TODO: Make this cleaner, we should use try/except tbh
+    if scratch:
+        if Session().build(link, branch, {"profile": profile, "scratch": True}):
+            logger.info("Build successful")
+    else:
+        logger.error(
+            'Build was not successful, '
+            f'try running "koji build --{profile=} {tag} {branch}" yourself'
+        )
     if Session().build(link, branch, {"profile": profile}):
         logger.info("Build successful")
     else:
@@ -98,11 +118,9 @@ def push(
 @app.command()
 def add(
     tag: str = Argument(..., help="The koji tag to add"),
-    dir: str = Option(".", "--dir", "-d", help="Where umpkg.toml is located"),
+    dir: str = Option(".", "--dir", "-d", help="Where umpkg.toml is located", callback=chdir),
 ):
     """Add a package to koji."""
-    logger.debug(f"Changing directory to {dir}")
-    chdir(dir)
     cfg = [x for i, x in enumerate(read_cfg().items()) if not i][0]
     name = cfg[0]
     if Session().add(tag, name):
@@ -131,14 +149,13 @@ def init(name: str = Argument(..., help="Name of the project")):
 @app.command()
 def get(
     repo: str = Argument(..., help="Name of the repository"),
-    dir: str = Option('name of the repo', '--dir', '-d', "The directory to clone to")
+    dir: str = Option(None, '--dir', '-d', "The directory to clone to", show_default='name of the repo')
 ):
     """Clone a git repo."""
-    if dir == 'name of the repo': dir = repo
     url = read_globalcfg()['repourl']
     if not url.endswith('/'): url += '/'
     url += repo
-    clone(url, dir)
+    clone(url, dir or repo)
 
 @app.command()
 def setup():
