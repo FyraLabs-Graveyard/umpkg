@@ -1,14 +1,12 @@
 """From the old version"""
-from asyncio import sleep
 from contextlib import suppress
 from glob import glob
-from os import getcwd, path
-import os
+from os import getcwd, makedirs, path
 from pathlib import Path
 import shutil
 from typing import Callable, TypeVar
 
-from .utils import err, run, SLEEP
+from .utils import err, run
 from .config import read_globalcfg
 from .log import get_logger
 
@@ -17,7 +15,7 @@ cfg = read_globalcfg()
 T = TypeVar('T', 'Mock', 'RPMBuild')
 
 def _buildsrc(fn: Callable[[T, str, str], list[str]]):
-    async def buildsrc(self: T, spec: str, srcdir: str = '', opts: list[str] = []):
+    def buildsrc(self: T, spec: str, srcdir: str = '', opts: list[str] = []):
         """Builds a source RPM from a spec file"""
         srcdir = srcdir or path.join(self.cfg.get('srcdir', 'build/src'), Path(spec).stem)
         if not path.exists(srcdir):
@@ -32,9 +30,7 @@ def _buildsrc(fn: Callable[[T, str, str], list[str]]):
         cmd = ' '.join([f'"{c}"' if ' ' in c else c for c in cmd])
         
         proc = run(cmd)
-        while (rc := proc.poll()) is None:
-            await sleep(SLEEP)
-        if rc:
+        if proc.returncode:
             return err('FAIL TO BUILD SRPM', proc, spec=spec, log=logger, cmd=cmd)
         # get the newest file in build/srpm
         files = glob("build/srpm/*.src.rpm")
@@ -44,13 +40,11 @@ def _buildsrc(fn: Callable[[T, str, str], list[str]]):
     return buildsrc
 
 def _buildrpm(fn: Callable[[T, str], list[str]]):
-    async def buildRPM(self: T, srpm: str, opts: list[str] = []):
+    def buildRPM(self: T, srpm: str, opts: list[str] = []):
         cmd = fn(self, srpm) + opts
         cmd = ' '.join([f'"{c}"' if ' ' in c else c for c in cmd])
         proc = run(cmd)
-        while not (rc := proc.poll()) is None:
-            await sleep(SLEEP)
-        if rc:
+        if proc.returncode:
             return err('FAIL TO BUILD RPM', proc, srpm=srpm, log=logger)
         # get the newest file in build/rpm
         files = glob("build/rpm/*.rpm") + glob("build/repo/results/default/**/*.rpm")
@@ -135,9 +129,9 @@ def devenv_setup():
     logger.info("Setting up Koji profile")
     # make ~/.koji
     if not path.exists(path.expanduser("~/.koji/config.d/")):
-        os.makedirs(path.expanduser("~/.koji/config.d/"))
+        makedirs(path.expanduser("~/.koji/config.d/"))
     shutil.copyfile(
-        os.path.dirname(os.path.abspath(__file__)) + "/assets/ultramarine.conf",
+        path.dirname(path.abspath(__file__)) + "/assets/ultramarine.conf",
         path.expanduser("~/.koji/config.d") + "/ultramarine.conf"
     )
     logger.info("Setting up RPM build environment")

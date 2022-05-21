@@ -44,11 +44,9 @@ def read_globalcfg() -> dict[str, str]:
         return dft_gbl
 
 
-def write_cfg(cfg: dict[str, str]) -> None:
+def write_cfg(cfg: dict[str, dict[str, str]], path: str) -> None:
     # Write the TOML file including the [umpkg] section
-    dump = toml.dumps({'package': cfg})
-    with open(PATH, 'w+') as f:
-        f.write(dump)
+    toml.dump(cfg, open(path, 'w+'))
 
 
 def write_globalcfg(cfg: dict[str, str]) -> None:
