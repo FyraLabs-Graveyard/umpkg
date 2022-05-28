@@ -8,6 +8,7 @@ URL:            url.to.official.website.org
 Source0:        https://github.com/Ultramarine-Linux/umpkg/archive/refs/tags/%{version}.tar.gz
 License:        MIT
 BuildRequires:  python3-devel
+Requires:       mock
 Group:          Applications/Internet
 BuildArch:      noarch
 %description
