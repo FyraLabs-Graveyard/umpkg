@@ -18,6 +18,9 @@ if __name__ == '__main__':
         include_dirs=["umpkg"],
         include_package_data=True,
         packages=["umpkg"],
+        package_data={
+            "umpkg": ["assets/*"],
+        },
         package_dir={"umpkg": "umpkg"},
         python_requires=">=3.10",
         entry_points={"console_scripts": [
