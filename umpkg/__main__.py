@@ -19,9 +19,8 @@ app = Typer()
 
 
 @app.command()
-def build(path: str = Argument(".", help="The path to the package.", callback=_cfgget)):
+def build(path: str = Argument(".", help="The path to the package.")):
     """Builds a package from source."""
-    chdir(path)
     cfgs = read_cfg(join(path, "umpkg.toml"))
     num = 0
     for name, cfg in cfgs.items():
@@ -79,18 +78,22 @@ def push(
     if scratch:
         if Session().build(link, branch, {"profile": profile, "scratch": True}):
             logger.info("Build successful")
-    else:
-        logger.error(
-            "Build was not successful, "
-            f'try running "koji build --{profile=} {tag} {branch}" yourself'
-        )
+            sys.exit(0)
+        else:
+            logger.error(
+                "Build was not successful, "
+                f'try running "koji build --{profile=} {tag} {branch}" yourself'
+            )
+            sys.exit(1)
     if Session().build(link, branch, {"profile": profile}):
         logger.info("Build successful")
+        sys.exit(0)
     else:
         logger.error(
             "Build was not successful, "
             f'try running "koji build --{profile=} {tag} {branch}" yourself'
         )
+        sys.exit(1)
 
 
 @app.command()

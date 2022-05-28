@@ -26,9 +26,7 @@ def _buildsrc(fn: Callable[[T, str, str], list[str]]):
         cmd = fn(self, spec, srcdir) + opts
 
         # mock cannot parse Popen with lists correctly.
-        # Thanks mock devs!!!!!!!!111
-        cmd = ' '.join([f'"{c}"' if ' ' in c else c for c in cmd])
-        
+        # Thanks mock devs!!!!!!!!111        
         proc = run(cmd)
         if proc.returncode:
             return err('FAIL TO BUILD SRPM', proc, spec=spec, log=logger, cmd=cmd)
@@ -42,7 +40,6 @@ def _buildsrc(fn: Callable[[T, str, str], list[str]]):
 def _buildrpm(fn: Callable[[T, str], list[str]]):
     def buildRPM(self: T, srpm: str, opts: list[str] = []):
         cmd = fn(self, srpm) + opts
-        cmd = ' '.join([f'"{c}"' if ' ' in c else c for c in cmd])
         proc = run(cmd)
         if proc.returncode:
             return err('FAIL TO BUILD RPM', proc, srpm=srpm, log=logger)

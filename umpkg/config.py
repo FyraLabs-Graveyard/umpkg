@@ -25,6 +25,7 @@ dft_cfg: dict[str, str] = {
 
 @cache
 def read_cfg(path: str = PATH) -> dict[str, dict[str, str]]:
+    path = os.path.abspath(path)
     try:
         return toml.load(path)
     except Exception:
