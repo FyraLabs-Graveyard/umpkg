@@ -1,7 +1,7 @@
 import sys
 from .config import get_logger
-import gitlab as gl
-import github as gh
+# import gitlab as gl
+# import github as gh
 import pygit2 as pg
 # from urllib.parse import urlparse
 

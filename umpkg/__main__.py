@@ -1,3 +1,4 @@
+from posixpath import abspath, dirname
 import sys
 from os import chdir, mkdir
 from os.path import join, exists, isdir
@@ -131,6 +132,8 @@ def init(name: str = Argument(..., help="Name of the project")):
         return logger.error(f'{name} exists not as a directory.')
     if exists(f'{name}/umpkg.toml'):
         return logger.error(f'{name}/umpkg.toml already exists.')
+    if exists(f'{name}/{name}.spec'):
+        return logger.error(f'{name}/{name}.spec already exists.')
     repo = read_globalcfg()['repo']
     if not repo.endswith('/'):
         repo += '/'
@@ -145,6 +148,12 @@ def init(name: str = Argument(..., help="Name of the project")):
         }
     }
     write_cfg(cfg, f'{name}/umpkg.toml')
+    f = open(dirname(abspath(__file__)) + "/assets/template.spec")
+    content = f.read().replace('<name>', name)
+    f.close()
+    f = open(f'{name}/{name}.spec', 'w')
+    f.write(content)
+    f.close()
 
 
 @app.command()

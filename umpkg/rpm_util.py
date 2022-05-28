@@ -29,7 +29,7 @@ def _buildsrc(fn: Callable[[T, str, str], list[str]]):
         # Thanks mock devs!!!!!!!!111        
         proc = run(cmd)
         if proc.returncode:
-            return err('FAIL TO BUILD SRPM', proc, spec=spec, log=logger, cmd=cmd)
+            return err('FAIL TO BUILD SRPM', proc, spec=spec, log=logger, cmd=' '.join([f'"{c}"' if ' ' in c else c for c in cmd]))
         # get the newest file in build/srpm
         files = glob("build/srpm/*.src.rpm")
         with suppress(ValueError):

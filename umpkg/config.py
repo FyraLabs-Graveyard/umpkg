@@ -14,7 +14,6 @@ LINK = 'https://github.com/ultramarine-linux/'
 
 ## DEFAULTS ##
 dft_gbl = {
-    "editor": "",
     "build_method": "mock",
     "repo": LINK
 }
