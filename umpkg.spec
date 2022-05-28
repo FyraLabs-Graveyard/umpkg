@@ -1,7 +1,7 @@
 %undefine _disable_source_fetch
 
 Name:           umpkg
-Version:        0.3.1
+Version:        0.3.2
 Release:        1%{?dist}
 Summary:        Summary here
 URL:            url.to.official.website.org
@@ -34,4 +34,3 @@ This is a very long description of umpkg.
 %changelog
 * Sat May 28 2022 Cappy Ishihara <cappy@cappuchino.xyz> - 0.3.1-1.um36
 - Initial Rewrite
-
