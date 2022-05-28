@@ -1,0 +1,6 @@
+[umpkg]
+spec = "umpkg.spec"
+build_script = ""
+build_method = "mock"
+owner = "your koji username"
+git_repo = "https://github.com/ultramarine-linux/umpkg"

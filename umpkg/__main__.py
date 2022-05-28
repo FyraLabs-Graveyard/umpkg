@@ -1,3 +1,6 @@
+import os
+from posixpath import abspath, dirname
+import shutil
 import sys
 from os import chdir
 from os.path import join, exists, isdir, dirname, abspath
@@ -45,6 +48,20 @@ def bs(path: str = Argument(".", help="The path to the package.")):
         if bs := cfg.get("build_script", ""):
             logger.info(f"Running bs for {name}: {bs}")
             run(bs)
+
+
+@app.command()
+def koji_prepare():
+    """Prepare Koji build environment"""
+    bs(".")
+    logger.info("Copying spec file for Koji")
+    cfgs = read_cfg(join(".", "umpkg.toml"))
+    repo_name = os.path.basename(os.getcwd())
+    for cfg in cfgs.values():
+        # get the spec file name from the config
+        spec = cfg["spec"]
+        newspec = repo_name + ".spec"
+        shutil.copy(spec, newspec)
 
 
 @app.command()
