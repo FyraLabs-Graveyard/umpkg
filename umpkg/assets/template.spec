@@ -8,7 +8,7 @@ URL:            url.to.official.website.org
 Source0:        https://link.to/download.tar.gz
 License:        https://link.to/terms
 Requires:       pkg1, pkg2 >= 3.21, pkg3
-Group:          Applications/Internet
+Group:          ...
 ExclusiveArch:  x86_64
 %description
 This is a very long description of <name>.

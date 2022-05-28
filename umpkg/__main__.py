@@ -1,15 +1,13 @@
-from posixpath import abspath, dirname
 import sys
-from os import chdir, mkdir
-from os.path import join, exists, isdir
+from os import chdir
+from os.path import join, exists, isdir, dirname, abspath
 from subprocess import getoutput
 
 from typer import Argument, Option, Typer
 
 from .build import Build
-from .config import read_cfg, read_globalcfg, write_cfg
-from .git import clone
-from .log import get_logger
+from .config import read_cfg, read_globalcfg, get_logger, toml
+from .git import clone, initrepo
 from .monogatari import Session
 from .rpm_util import devenv_setup
 from .utils import err, run
@@ -56,6 +54,7 @@ def push(
     repo: str = Option("origin", "--repo", "-r"),
     scratch: bool = Option(False, "--scratch", "-s", help="Use scratch build"),
     _=Option(".", "--dir", "-d", help="Where umpkg.toml is located", callback=chdir),
+    prf: str = Argument('ultramarine', help="Koji Profile")
 ):
     """Push a package to koji."""
     cfg = [x for i, x in enumerate(read_cfg().values()) if not i][0]
@@ -74,22 +73,12 @@ def push(
             f"{branch} has not been pushed to {repo}, please push it first."
         )
 
-    profile = cfg.get("koji_profile", "ultramarine")
-    # TODO: Make this cleaner, we should use try/except tbh
-    if scratch:
-        if Session().build(link, branch, {"profile": profile, "scratch": True}):
-            logger.info("Build successful")
-            sys.exit(0)
-        else:
-            logger.error(
-                "Build was not successful, "
-                f'try running "koji build --{profile=} {tag} {branch}" yourself'
-            )
-            sys.exit(1)
-    if Session().build(link, branch, {"profile": profile}):
+    profile = cfg.get("koji_profile", prf)
+    try:
+        assert Session(prf).build(link, branch, {"profile": profile, "scratch": scratch})
         logger.info("Build successful")
         sys.exit(0)
-    else:
+    except AssertionError:
         logger.error(
             "Build was not successful, "
             f'try running "koji build --{profile=} {tag} {branch}" yourself'
@@ -126,34 +115,30 @@ def version():
 @app.command()
 def init(name: str = Argument(..., help="Name of the project")):
     """Initializes a umpkg project."""
-    if not exists(name):
-        mkdir(name)
-    elif not isdir(name):
+    if not isdir(name) and exists(name):
         return logger.error(f'{name} exists not as a directory.')
-    if exists(f'{name}/umpkg.toml'):
-        return logger.error(f'{name}/umpkg.toml already exists.')
-    if exists(f'{name}/{name}.spec'):
-        return logger.error(f'{name}/{name}.spec already exists.')
-    repo = read_globalcfg()['repo']
-    if not repo.endswith('/'):
-        repo += '/'
-    repo += name
-    cfg = {
-        name: {
-            'spec': f'{name}.spec',
-            'build_script': '',
-            'build_method': 'mock',
-            'owner': 'your koji username',
-            'git_repo': repo
+    url = initrepo(name)
+    chdir(name)
+    if not exists('umpkg.toml'):
+        logger.info("Writing umpkg.toml")
+        cfg = {
+            name: {
+                'spec': f'{name}.spec',
+                'build_script': '',
+                'build_method': 'mock',
+                'owner': 'your koji username',
+                'git_repo': url
+            }
         }
-    }
-    write_cfg(cfg, f'{name}/umpkg.toml')
-    f = open(dirname(abspath(__file__)) + "/assets/template.spec")
-    content = f.read().replace('<name>', name)
-    f.close()
-    f = open(f'{name}/{name}.spec', 'w')
-    f.write(content)
-    f.close()
+        toml.dump(cfg, open('umpkg.toml', "w+"))
+    if not exists(f'{name}.spec'):
+        logger.info(f"Writing {name}.spec")
+        f = open(dirname(abspath(__file__)) + "/assets/template.spec")
+        content = f.read().replace('<name>', name)
+        f.close()
+        f = open(f'{name}.spec', 'w')
+        f.write(content)
+        f.close()
 
 
 @app.command()
@@ -162,7 +147,7 @@ def get(
     dir: str = Argument(None, help="Output directory", show_default="repo name"),
 ):
     """Clone a git repo."""
-    url = read_globalcfg()["repourl"]
+    url = read_globalcfg()["repo"]
     if not url.endswith("/"):
         url += "/"
     url += repo

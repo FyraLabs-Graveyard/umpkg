@@ -23,11 +23,7 @@ def _buildsrc(fn: Callable[[T, str, str], list[str]]):
             srcdir = getcwd()
 
         logger.info(f"{spec[:-5]}: building from {srcdir}")
-        cmd = fn(self, spec, srcdir) + opts
-
-        # mock cannot parse Popen with lists correctly.
-        # Thanks mock devs!!!!!!!!111        
-        proc = run(cmd)
+        proc = run(cmd := fn(self, spec, srcdir) + opts)
         if proc.returncode:
             return err('FAIL TO BUILD SRPM', proc, spec=spec, log=logger, cmd=' '.join([f'"{c}"' if ' ' in c else c for c in cmd]))
         # get the newest file in build/srpm
