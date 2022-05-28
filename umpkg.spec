@@ -1,7 +1,7 @@
 %undefine _disable_source_fetch
 
 Name:           umpkg
-Version:        0.3.2
+Version:        0.3.3
 Release:        1%{?dist}
 Summary:        Summary here
 URL:            url.to.official.website.org
