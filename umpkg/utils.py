@@ -9,7 +9,7 @@ def run(cmd: list[str] | str, show_cmd: bool = False):
         else:
             print(*cmd)
 
-    return sp.run(cmd, universal_newlines=True, capture_output=True)
+    return sp.run(cmd, universal_newlines=True)
 
 def err(title: str, proc: sp.CompletedProcess[str]|str, log: Logger, **kws: str):
     out = f"\n### {title} ###\n"
