@@ -41,10 +41,11 @@ class Session:
         if pkg in [p["package_name"] for p in sess.listPackages(tagID=dtag["id"])]:
             logger.error("Package already exists.")
             sys.exit(1)
-        owner = read_cfg().get("owner", "") or read_globalcfg("owner", "")
+        logger.debug(read_cfg())
+        owner = read_cfg()[pkg].get("owner", "") or read_globalcfg().get("owner", "")
         if not owner:
             logger.error("Please specify 'owner' in umpkg.toml")
             sys.exit(1)
-        id: int = sess.packageListAdd(tag, pkg, owner)  #! owner
+        sess.packageListAdd(tag, pkg, owner)  #! owner
         sess.logout()
-        return kojilib.watch_tasks(self.session, [id], poll_interval=1)
+        #return kojilib.watch_tasks(self.session, [id], poll_interval=1)
