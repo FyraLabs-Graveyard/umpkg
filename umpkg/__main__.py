@@ -63,11 +63,13 @@ def koji_prepare():
     run(["spectool", "-g", f"{glob.glob1('*.spec')[0]}"])
     cfgs = read_cfg(join(".", "umpkg.toml"))
     repo_name = os.path.basename(os.getcwd())
-    for cfg in cfgs.values():
-        # get the spec file name from the config
-        spec = cfg["spec"]
-        newspec = repo_name + ".spec"
-        shutil.copy(spec, newspec)
+    if f"{repo_name}.spec" not in glob.glob("*.spec"):
+        for cfg in cfgs.values():
+            # get the spec file name from the config
+            spec = cfg["spec"]
+            newspec = repo_name + ".spec"
+            shutil.copy(spec, newspec)
+    run(["spectool", "-g", f"{repo_name}.spec"])
 
 
 @app.command()
@@ -165,7 +167,7 @@ def repo_init(name: str):
                 "spec": f"{name}.spec",
                 "build_script": "",
                 "build_method": "mock",
-                "owner": "your koji username",
+                "owner": read_globalcfg().get("owner", ""),
                 "git_repo": url,
             }
         }
