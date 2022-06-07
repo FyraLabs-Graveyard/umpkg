@@ -1,3 +1,4 @@
+import glob
 import os
 from posixpath import abspath, dirname
 import shutil
@@ -23,6 +24,8 @@ app = Typer()
 @app.command()
 def build(path: str = Argument(".", help="The path to the package.")):
     """Builds a package from source."""
+    logger.info(f"Downloading sources")
+    run(["spectool", "-g", f"{path}/{glob.glob1(path, '*.spec')[0]}"])
     cfgs = read_cfg(join(path, "umpkg.toml"))
     num = 0
     for name, cfg in cfgs.items():
@@ -33,6 +36,8 @@ def build(path: str = Argument(".", help="The path to the package.")):
 @app.command()
 def buildsrc(path: str = Argument(".", help="The path to the package.")):
     """Builds source RPM from a spec file."""
+    # Fetch sources, so we won't need to undefine _disable_source_fetch
+    run(["spectool", "-g", f"{path}/{glob.glob1(path, '*.spec')[0]}"])
     cfgs = read_cfg(join(path, "umpkg.toml"))
     num = 0
     for name, cfg in cfgs.items():
@@ -55,6 +60,7 @@ def koji_prepare():
     """Prepare Koji build environment"""
     bs(".")
     logger.info("Copying spec file for Koji")
+    run(["spectool", "-g", f"{glob.glob1('*.spec')[0]}"])
     cfgs = read_cfg(join(".", "umpkg.toml"))
     repo_name = os.path.basename(os.getcwd())
     for cfg in cfgs.values():
@@ -79,7 +85,8 @@ def push(
     if link.startswith("fatal"):
         return err("ERROR FROM GIT", link, logger)
     link = "git+" + link
-    branch = branch or tag
+    # I'm sorry windowsboy this is a very ugly hack -cappy
+    branch = tag if branch is None else branch
     commit = getoutput(f"git rev-parse {branch}").strip()
     if commit == branch:
         return logger.error(f"Branch {branch} not found")
@@ -92,13 +99,13 @@ def push(
 
     profile = cfg.get("koji_profile", prf)
     try:
-        assert Session(prf).build(link, branch, {"profile": profile, "scratch": scratch})
+        assert Session(prf).build(link, tag, {"profile": profile, "scratch": scratch})
         logger.info("Build successful")
         sys.exit(0)
     except AssertionError:
         logger.error(
             "Build was not successful, "
-            f'try running "koji build --{profile=} {tag} {branch}" yourself'
+            f'try running "koji build --{profile=} {tag} {link}" yourself'
         )
         sys.exit(1)
 
@@ -130,8 +137,20 @@ def version():
 
 
 @app.command()
-def init(name: str = Argument(..., help="Name of the project")):
+def init(name: str = Argument(..., help="Name of the project"), type: str = Option("spec", help="Type of the project")):
     """Initializes a umpkg project."""
+    match type:
+        case "spec":
+            return repo_init(name)
+        case "rust":
+            repo_init(name)
+            #os.chdir(name)
+            run(["rust2rpm", name])
+            # rename the spec file
+            os.rename(f"rust-{name}.spec", f"{name}.spec")
+
+
+def repo_init(name: str):
     if not isdir(name) and exists(name):
         return logger.error(f'{name} exists not as a directory.')
     url = initrepo(name)
