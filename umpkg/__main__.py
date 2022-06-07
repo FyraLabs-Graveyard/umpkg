@@ -77,7 +77,7 @@ def push(
     repo: str = Option("origin", "--repo", "-r"),
     scratch: bool = Option(False, "--scratch", "-s", help="Use scratch build"),
     _=Option(".", "--dir", "-d", help="Where umpkg.toml is located", callback=chdir),
-    prf: str = Argument('ultramarine', help="Koji Profile")
+    prf: str = Argument("ultramarine", help="Koji Profile"),
 ):
     """Push a package to koji."""
     cfg = [x for i, x in enumerate(read_cfg().values()) if not i][0]
@@ -137,14 +137,17 @@ def version():
 
 
 @app.command()
-def init(name: str = Argument(..., help="Name of the project"), type: str = Option("spec", help="Type of the project")):
+def init(
+    name: str = Argument(..., help="Name of the project"),
+    type: str = Option("spec", help="Type of the project"),
+):
     """Initializes a umpkg project."""
     match type:
         case "spec":
             return repo_init(name)
         case "rust":
             repo_init(name)
-            #os.chdir(name)
+            # os.chdir(name)
             run(["rust2rpm", name])
             # rename the spec file
             os.rename(f"rust-{name}.spec", f"{name}.spec")
@@ -152,29 +155,36 @@ def init(name: str = Argument(..., help="Name of the project"), type: str = Opti
 
 def repo_init(name: str):
     if not isdir(name) and exists(name):
-        return logger.error(f'{name} exists not as a directory.')
+        return logger.error(f"{name} exists not as a directory.")
     url = initrepo(name)
     chdir(name)
-    if not exists('umpkg.toml'):
+    if not exists("umpkg.toml"):
         logger.info("Writing umpkg.toml")
         cfg = {
             name: {
-                'spec': f'{name}.spec',
-                'build_script': '',
-                'build_method': 'mock',
-                'owner': 'your koji username',
-                'git_repo': url
+                "spec": f"{name}.spec",
+                "build_script": "",
+                "build_method": "mock",
+                "owner": "your koji username",
+                "git_repo": url,
             }
         }
-        toml.dump(cfg, open('umpkg.toml', "w+"))
-    if not exists(f'{name}.spec'):
+        toml.dump(cfg, open("umpkg.toml", "w+"))
+    if not exists(f"{name}.spec"):
         logger.info(f"Writing {name}.spec")
         f = open(dirname(abspath(__file__)) + "/assets/template.spec")
-        content = f.read().replace('<name>', name)
+        content = f.read().replace("<name>", name)
         f.close()
-        f = open(f'{name}.spec', 'w')
+        f = open(f"{name}.spec", "w")
         f.write(content)
         f.close()
+    if not exists(".gitignore"):
+        logger.info("Writing .gitignore")
+        # copy the template
+        with open(dirname(abspath(__file__)) + "/assets/gitignore.in", "r") as f:
+            content = f.read()
+        with open(".gitignore", "w") as f:
+            f.write(content)
 
 
 @app.command()

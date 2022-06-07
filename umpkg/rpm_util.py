@@ -12,12 +12,15 @@ from .log import get_logger
 
 logger = get_logger(__name__)
 cfg = read_globalcfg()
-T = TypeVar('T', 'Mock', 'RPMBuild')
+T = TypeVar("T", "Mock", "RPMBuild")
+
 
 def _buildsrc(fn: Callable[[T, str, str], list[str]]):
-    def buildsrc(self: T, spec: str, srcdir: str = '', opts: list[str] = []):
+    def buildsrc(self: T, spec: str, srcdir: str = "", opts: list[str] = []):
         """Builds a source RPM from a spec file"""
-        srcdir = srcdir or path.join(self.cfg.get('srcdir', 'build/src'), Path(spec).stem)
+        srcdir = srcdir or path.join(
+            self.cfg.get("srcdir", "build/src"), Path(spec).stem
+        )
         if not path.exists(srcdir):
             logger.warn("No valid srcdir cfg, using cwd")
             srcdir = getcwd()
@@ -25,25 +28,34 @@ def _buildsrc(fn: Callable[[T, str, str], list[str]]):
         logger.info(f"{spec[:-5]}: building from {srcdir}")
         proc = run(cmd := fn(self, spec, srcdir) + opts)
         if proc.returncode:
-            return err('FAIL TO BUILD SRPM', proc, spec=spec, log=logger, cmd=' '.join([f'"{c}"' if ' ' in c else c for c in cmd]))
+            return err(
+                "FAIL TO BUILD SRPM",
+                proc,
+                spec=spec,
+                log=logger,
+                cmd=" ".join([f'"{c}"' if " " in c else c for c in cmd]),
+            )
         # get the newest file in build/srpm
         files = glob("build/srpm/*.src.rpm")
         with suppress(ValueError):
             return max(files, key=path.getmtime)
         logger.error(f"{spec[:-5]}: No SRPM found")
+
     return buildsrc
+
 
 def _buildrpm(fn: Callable[[T, str], list[str]]):
     def buildRPM(self: T, srpm: str, opts: list[str] = []):
         cmd = fn(self, srpm) + opts
         proc = run(cmd)
         if proc.returncode:
-            return err('FAIL TO BUILD RPM', proc, srpm=srpm, log=logger)
+            return err("FAIL TO BUILD RPM", proc, srpm=srpm, log=logger)
         # get the newest file in build/rpm
         files = glob("build/rpm/*.rpm") + glob("build/repo/results/default/**/*.rpm")
         with suppress(ValueError):
             return max(files, key=path.getmtime)
         logger.error(f"{srpm[:-5]}: No RPM found")
+
     return buildRPM
 
 
@@ -60,16 +72,16 @@ class RPMBuild:
             "-bs",
             spec,
             "--define",
-            f'_sourcedir {srcdir}',
+            f"_sourcedir {srcdir}",
             "--define",
-            '_srcrpmdir build/srpm',
+            "_srcrpmdir build/srpm",
             "--define",
-            '_rpmdir build/rpm',
+            "_rpmdir build/rpm",
             "--undefine",
             "_disable_source_fetch",
         ]
 
-    #? idk if we should have this but I've done it anyway
+    # ? idk if we should have this but I've done it anyway
     @_buildrpm
     def buildRPM(self, srpm: str):
         return [
@@ -77,9 +89,9 @@ class RPMBuild:
             "--rebuild",
             srpm,
             "--define",
-            '_rpmdir build/rpm',
+            "_rpmdir build/rpm",
             "--define",
-            '_srcrpmdir build/srpm',
+            "_srcrpmdir build/srpm",
             "--undefine",
             "_disable_source_fetch",
         ]
@@ -106,16 +118,17 @@ class Mock:
     @_buildrpm
     def buildRPM(self, srpm: str):
         cmd = ["mock"]
-        if self.cfg.get("mock_chroot", ''):
+        if self.cfg.get("mock_chroot", ""):
             cmd += ["-r", cfg["mock_chroot"]]
         return cmd + [
             "--rebuild",
             srpm,
-            "--chain",  #TODO sep this out
+            "--chain",  # TODO sep this out
             "--localrepo",
             "build/repo",
             "--enable-network",
         ]
+
 
 def devenv_setup():
     """Sets up a developer environment for Ultramarine"""
@@ -125,7 +138,7 @@ def devenv_setup():
         makedirs(path.expanduser("~/.koji/config.d/"))
     shutil.copyfile(
         path.dirname(path.abspath(__file__)) + "/assets/ultramarine.conf",
-        path.expanduser("~/.koji/config.d") + "/ultramarine.conf"
+        path.expanduser("~/.koji/config.d") + "/ultramarine.conf",
     )
     logger.info("Setting up RPM build environment")
     run("rpmdev-setuptree")

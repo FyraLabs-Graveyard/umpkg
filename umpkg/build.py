@@ -13,7 +13,7 @@ class Build:
     def __init__(self, path: str, cfg: dict[str, str], spec: str):
         self.path = path
         self.cfg = cfg
-        self.spec = join(path, cfg['spec'])
+        self.spec = join(path, cfg["spec"])
         self.name = spec
 
     def src(self) -> str | None:
@@ -31,7 +31,7 @@ class Build:
             "build_method", ""
         )
 
-        logger.debug(f'{spec=}\t{buildMethod=}')
+        logger.debug(f"{spec=}\t{buildMethod=}")
         match buildMethod:
             case "rpmbuild":
                 logger.info(f"{self.name}: rpmbuild")
@@ -53,8 +53,8 @@ class Build:
         buildMethod = self.cfg.get("build_method", "") or read_globalcfg().get(
             "build_method", ""
         )
-        
-        logger.debug(f'{spec=}\t{buildMethod=}')
+
+        logger.debug(f"{spec=}\t{buildMethod=}")
         match buildMethod:
             case "rpmbuild":
                 rpm = RPMBuild(self.cfg).buildRPM(srpm)

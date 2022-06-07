@@ -6,6 +6,7 @@ import koji
 from koji_cli import lib as kojilib
 
 from .config import read_cfg, read_globalcfg
+
 logger = get_logger(__name__)
 
 
@@ -37,13 +38,13 @@ class Session:
         if not dtag:
             logger.error("Tag not found.")
             sys.exit(1)
-        if pkg in [p['package_name'] for p in sess.listPackages(tagID=dtag['id'])]:
+        if pkg in [p["package_name"] for p in sess.listPackages(tagID=dtag["id"])]:
             logger.error("Package already exists.")
             sys.exit(1)
-        owner = read_cfg().get('owner', '') or read_globalcfg('owner', '')
+        owner = read_cfg().get("owner", "") or read_globalcfg("owner", "")
         if not owner:
             logger.error("Please specify 'owner' in umpkg.toml")
             sys.exit(1)
-        id: int  = sess.packageListAdd(tag, pkg, owner) #! owner
+        id: int = sess.packageListAdd(tag, pkg, owner)  #! owner
         sess.logout()
         return kojilib.watch_tasks(self.session, [id], poll_interval=1)

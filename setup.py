@@ -1,8 +1,8 @@
 import setuptools
 
-__version__ = '0.3.2'
+__version__ = "0.3.2"
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     setuptools.setup(
         name="umpkg",
         fullname="Ultramarine Packaging Tool",
@@ -23,7 +23,9 @@ if __name__ == '__main__':
         },
         package_dir={"umpkg": "umpkg"},
         python_requires=">=3.10",
-        entry_points={"console_scripts": [
-            "umpkg=umpkg.__main__:main",
-            ]},
+        entry_points={
+            "console_scripts": [
+                "umpkg=umpkg.__main__:main",
+            ]
+        },
     )
