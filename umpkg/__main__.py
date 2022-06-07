@@ -146,11 +146,11 @@ def init(
         case "spec":
             return repo_init(name)
         case "rust":
-            repo_init(name)
+            repo_init(f"rust-{name}")
             # os.chdir(name)
             run(["rust2rpm", name])
             # rename the spec file
-            os.rename(f"rust-{name}.spec", f"{name}.spec")
+            #os.rename(f"rust-{name}.spec", f"{name}.spec")
 
 
 def repo_init(name: str):
