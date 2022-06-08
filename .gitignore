@@ -1,7 +1,5 @@
-__pycache__/
-.vscode/
-# Python package stuff
-*.egg-info/
-*.egg/
-dist/
+__pycache__
+*.egg-info
+venv
 build/
+*.tar.*

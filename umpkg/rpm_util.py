@@ -1,201 +1,144 @@
-import os
-import glob
-import sys
-import rpm
+"""From the old version"""
+from contextlib import suppress
+from glob import glob
+from os import getcwd, makedirs, path
+from pathlib import Path
+import shutil
+from typing import Callable, TypeVar
 
-import umpkg.cfg as config
+from .utils import err, run
+from .config import read_globalcfg
+from .log import get_logger
 
-cfg = config.readGlobalConfig()
-pkgconfig = config.read_config()
+logger = get_logger(__name__)
+cfg = read_globalcfg()
+T = TypeVar("T", "Mock", "RPMBuild")
 
-# Ported over from Lapis Utils
-class RPM:
-    def analyzeRPM(rpm_path: str):
-        """[summary]
-        Analyze an RPM to get its metadata
-        """
-        ts = rpm.TransactionSet()
-        ts.setVSFlags(rpm._RPMVSF_NOSIGNATURES)
-        fdno = os.open(rpm_path, os.O_RDONLY)
-        hdr = ts.hdrFromFdno(fdno)
-        os.close(fdno)
-        return hdr
+
+def _buildsrc(fn: Callable[[T, str, str], list[str]]):
+    def buildsrc(self: T, spec: str, srcdir: str = "", opts: list[str] = []):
+        """Builds a source RPM from a spec file"""
+        srcdir = srcdir or path.join(
+            self.cfg.get("srcdir", "build/src"), Path(spec).stem
+        )
+        if not path.exists(srcdir):
+            logger.warn("No valid srcdir cfg, using cwd")
+            srcdir = getcwd()
+
+        logger.info(f"{spec[:-5]}: building from {srcdir}")
+        proc = run(cmd := fn(self, spec, srcdir) + opts)
+        if proc.returncode:
+            return err(
+                "FAIL TO BUILD SRPM",
+                proc,
+                spec=spec,
+                log=logger,
+                cmd=" ".join([f'"{c}"' if " " in c else c for c in cmd]),
+            )
+        # get the newest file in build/srpm
+        files = glob("build/srpm/*.src.rpm")
+        with suppress(ValueError):
+            return max(files, key=path.getmtime)
+        logger.error(f"{spec[:-5]}: No SRPM found")
+
+    return buildsrc
+
+
+def _buildrpm(fn: Callable[[T, str], list[str]]):
+    def buildRPM(self: T, srpm: str, opts: list[str] = []):
+        cmd = fn(self, srpm) + opts
+        proc = run(cmd)
+        if proc.returncode:
+            return err("FAIL TO BUILD RPM", proc, srpm=srpm, log=logger)
+        # get the newest file in build/rpm
+        files = glob("build/rpm/*.rpm") + glob("build/repo/results/default/**/*.rpm")
+        with suppress(ValueError):
+            return max(files, key=path.getmtime)
+        logger.error(f"{srpm[:-5]}: No RPM found")
+
+    return buildRPM
 
 
 class RPMBuild:
-    def buildSrc(spec: str, source_dir: str = None, opts: list = None):
-        """
-        Builds a source RPM from a spec file
-        """
+    def __init__(self, cfg: dict[str, str]):
+        self.cfg = cfg
 
-        if source_dir is None:
-            # check if srcdir is set
-            if pkgconfig["srcdir"] == "":
-                # if not set, use pwd
-                source_dir = os.getcwd()
-            else:
-                # if set use that + the spec name without .spec
-                source_dir = (
-                    pkgconfig["srcdir"] + "/" + spec.split("/")[-1].split(".")[0]
-                )
-                # check if the directory exists
-                if not os.path.exists(source_dir):
-                    # if not, use $PWD
-                    print(f"{source_dir} not found, using current directory")
-                    source_dir = os.getcwd()
-        # build the source
-        print(f"Building source RPM from {source_dir}")
-        command = [
+    @_buildsrc
+    def buildsrc(self, spec: str, srcdir: str):
+        # turn srcdir into an absolute path
+        srcdir = path.abspath(srcdir)
+        return [
             "rpmbuild",
             "-bs",
             spec,
             "--define",
-            f'"_sourcedir {source_dir}"',
+            f"_sourcedir {srcdir}",
             "--define",
-            f'"_srcrpmdir build/srpm"',
+            "_srcrpmdir build/srpm",
             "--define",
-            f'"_rpmdir build/rpm"',
+            "_rpmdir build/rpm",
             "--undefine",
             "_disable_source_fetch",
         ]
-        if opts is not None:
-            command += opts
-        command = " ".join(command)
-        try:
-            builder = os.system(command)
-            if builder != 0:
-                print(f"Error building {spec}")
-                sys.exit(1)
-        except:
-            print("Error building source RPM")
-            sys.exit(1)
-        # get the newest file in build/srpm
-        filelist = glob.glob("build/srpm/*.src.rpm")
-        try:
-            newest = max(filelist, key=os.path.getmtime)
-            return newest
-        except ValueError:
-            print("No SRPM found")
-            sys.exit(1)
 
-    def buildRPM(srpm, opts=None):
-        """
-        Builds an RPM from an SRPM
-        """
-        command = [
+    # ? idk if we should have this but I've done it anyway
+    @_buildrpm
+    def buildRPM(self, srpm: str):
+        return [
             "rpmbuild",
-            "-bb",
+            "--rebuild",
             srpm,
             "--define",
-            '"_sourcedir ."',
+            "_rpmdir build/rpm",
             "--define",
-            '"_rpmdir build/rpm"',
-            "--define",
-            '"_srcrpmdir build/srpm"',
+            "_srcrpmdir build/srpm",
             "--undefine",
             "_disable_source_fetch",
         ]
-        if opts is not None:
-            command += opts  # Opts should be an array of strings
-        command = " ".join(command)
-        try:
-            builder = os.system(command)
-            if builder != 0:
-                print(f"Error building {srpm}")
-                sys.exit(1)
-        except:
-            print("Error building RPM")
-            sys.exit(1)
-        # get the newest file in build/rpm
-        filelist = glob.glob("build/rpm/*.rpm")
-        try:
-            newest = max(filelist, key=os.path.getmtime)
-            return newest
-        except ValueError:
-            print("No RPM found")
-            sys.exit(1)
 
 
 class Mock:
-    def buildSrc(self, spec: str, source_dir: str = None, opts: list = None):
-        """
-        Builds a source RPM from a spec file
-        """
+    def __init__(self, cfg: dict[str, str]):
+        self.cfg = cfg
 
-        if source_dir is None:
-            # check if srcdir is set
-            if pkgconfig["srcdir"] == "":
-                # if not set, use pwd
-                source_dir = os.getcwd()
-            else:
-                # if set use that + the spec name without .spec
-                source_dir = (
-                    pkgconfig["srcdir"] + "/" + spec.split("/")[-1].split(".")[0]
-                )
-                # check if the directory exists
-                if not os.path.exists(source_dir):
-                    # if not, use $PWD
-                    print(f"{source_dir} not found, using current directory")
-                    source_dir = os.getcwd()
-        # build the source
-        command = [
+    @_buildsrc
+    def buildsrc(self, spec: str, srcdir: str):
+        return [
             "mock",
-        ]
-        if cfg["mock_chroot"] != "":
-            command += ["-r", cfg["mock_chroot"]]
-        command += [
             "--buildsrpm",
             "--spec",
             spec,
             "--sources",
-            source_dir,
+            srcdir,
             "--resultdir",
             "build/srpm",
             "--enable-network",
         ]
-        if opts is not None:
-            command += opts
 
-        command = " ".join(command)
-        try:
-            builder = os.system(command)
-            if builder != 0:
-                print(f"Error building {spec}")
-                sys.exit(1)
-        except:
-            print("Error building source RPM")
-            sys.exit(1)
-        # get the newest file in build/srpm
-        filelist = glob.glob("build/srpm/*.src.rpm")
-        try:
-            newest = max(filelist, key=os.path.getmtime)
-            return newest
-        except ValueError:
-            print("No SRPM found")
-            sys.exit(1)
-
-    def buildRPM(self, srpm, opts=None):
-        """
-        Builds an RPM from an SRPM
-        """
-        command = [
-            "mock",
-        ]
-        if cfg["mock_chroot"] != "":
-            command += ["-r", cfg["mock_chroot"]]
-        command += [
+    @_buildrpm
+    def buildRPM(self, srpm: str):
+        cmd = ["mock"]
+        if self.cfg.get("mock_chroot", ""):
+            cmd += ["-r", cfg["mock_chroot"]]
+        return cmd + [
             "--rebuild",
             srpm,
-            "--chain",
+            "--chain",  # TODO sep this out
             "--localrepo",
             "build/repo",
             "--enable-network",
         ]
-        if opts is not None:
-            command += opts
-        command = " ".join(command)
-        try:
-            builder = os.system(command)
-        except OSError:
-            print("Error building RPM")
-            sys.exit(1)
+
+
+def devenv_setup():
+    """Sets up a developer environment for Ultramarine"""
+    logger.info("Setting up Koji profile")
+    # make ~/.koji
+    if not path.exists(path.expanduser("~/.koji/config.d/")):
+        makedirs(path.expanduser("~/.koji/config.d/"))
+    shutil.copyfile(
+        path.dirname(path.abspath(__file__)) + "/assets/ultramarine.conf",
+        path.expanduser("~/.koji/config.d") + "/ultramarine.conf",
+    )
+    logger.info("Setting up RPM build environment")
+    run("rpmdev-setuptree")
