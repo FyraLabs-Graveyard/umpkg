@@ -1,4 +1,5 @@
 import logging
+import os
 import sys
 import traceback
 
@@ -36,7 +37,7 @@ ffmt = logging.Formatter(
 )
 chdl = logging.StreamHandler(sys.stdout)
 chdl.setFormatter(cfmt)
-fhdl = logging.FileHandler("/tmp/umpkg.log", "a", "utf-8")
+fhdl = logging.FileHandler(os.path.expanduser("~/.cache/umpkg.log"), "a", "utf-8")
 fhdl.setFormatter(ffmt)
 
 
