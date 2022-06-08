@@ -101,7 +101,7 @@ def push(
 
     profile = cfg.get("koji_profile", prf)
     try:
-        assert Session(prf).build(link, branch, {"profile": profile, "scratch": scratch}, wait)
+        assert not Session(prf).build(link, branch, {"profile": profile, "scratch": scratch}, wait)
         logger.info("Build successful")
         sys.exit(0)
     except AssertionError:
