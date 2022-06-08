@@ -10,7 +10,7 @@ logger.debug("cwd: %s", os.getcwd())
 logger.debug("home: %s", home := os.path.expanduser("~"))
 PATH = "./umpkg.toml"
 GLOBAL_PATH = "~/.config/umpkg.toml"
-LINK = "https://github.com/ultramarine-linux/pkg-"
+LINK = "https://github.com/ultramarine-linux/"
 
 ## DEFAULTS ##
 dft_gbl = {"build_method": "mock", "repo": LINK}

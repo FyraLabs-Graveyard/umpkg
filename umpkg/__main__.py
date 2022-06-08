@@ -60,7 +60,6 @@ def koji_prepare():
     """Prepare Koji build environment"""
     bs(".")
     logger.info("Copying spec file for Koji")
-    run(["spectool", "-g", f"{glob.glob1('*.spec')[0]}"])
     cfgs = read_cfg(join(".", "umpkg.toml"))
     repo_name = os.path.basename(os.getcwd())
     if f"{repo_name}.spec" not in glob.glob("*.spec"):
