@@ -37,6 +37,9 @@ ffmt = logging.Formatter(
 )
 chdl = logging.StreamHandler(sys.stdout)
 chdl.setFormatter(cfmt)
+# if ~/.cache doesnt exist, create it
+if not os.path.exists(os.path.expanduser("~/.cache")):
+    os.makedirs(os.path.expanduser("~/.cache"))
 fhdl = logging.FileHandler(os.path.expanduser("~/.cache/umpkg.log"), "a", "utf-8")
 fhdl.setFormatter(ffmt)
 
