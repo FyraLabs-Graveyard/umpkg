@@ -33,7 +33,7 @@ class Session:
         self.session.logout()
         if watch:
             return kojilib.watch_tasks(self.session, [id], poll_interval=1)
-        else: return 0
+        return 0
 
     def add(self, tag: str, pkg: str) -> Literal[0, 1]:
         dtag: dict[str, Any] = (sess := self.session).getTag(tag)

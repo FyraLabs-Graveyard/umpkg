@@ -101,10 +101,11 @@ def push(
 
     profile = cfg.get("koji_profile", prf)
     try:
-        assert not Session(prf).build(link, branch, {"profile": profile, "scratch": scratch}, wait)
-        logger.info("Build successful")
+        rc = Session(prf).build(link, branch, {"profile": profile, "scratch": scratch}, wait)
+        if wait:
+            logger.info(f"Build successful, returned {rc}")
         sys.exit(0)
-    except AssertionError:
+    except Exception:
         logger.error(
             "Build was not successful, "
             f'try running "koji build --{profile=} {tag} {link}" yourself'
