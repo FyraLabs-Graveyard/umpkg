@@ -6,8 +6,9 @@ import toml
 from .log import get_logger
 
 logger = get_logger(__name__)
-logger.debug("cwd: %s", os.getcwd())
-logger.debug("home: %s", home := os.path.expanduser("~"))
+#logger.debug("cwd: %s", os.getcwd())
+home = os.path.expanduser("~")
+#logger.debug("home: %s", home := os.path.expanduser("~"))
 PATH = "./umpkg.toml"
 GLOBAL_PATH = "~/.config/umpkg.toml"
 LINK = "https://github.com/ultramarine-linux/"

@@ -212,7 +212,7 @@ def setup():
 def main():
     # run help if no arguments are passed
     if len(sys.argv) == 1:
-        logger.debug("no args detected; calling --help")
+        #logger.debug("no args detected; calling --help")
         return app(args=["--help"])
     app()
 
